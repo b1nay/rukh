@@ -1,0 +1,35 @@
+"""Approximate district headquarters, used to place fields enrolled without GPS."""
+
+DISTRICT_CENTROIDS: dict[str, tuple[float, float]] = {
+    "Ilam": (26.91, 87.93),
+    "Jhapa": (26.55, 87.90),
+    "Panchthar": (27.14, 87.76),
+    "Dhankuta": (26.98, 87.34),
+    "Terhathum": (27.13, 87.66),
+    "Kaski": (28.21, 83.99),
+    "Lamjung": (28.23, 84.38),
+    "Syangja": (28.09, 83.87),
+    "Tanahun": (27.97, 84.27),
+    "Gorkha": (28.00, 84.63),
+    "Chitwan": (27.68, 84.43),
+    "Nawalparasi": (27.64, 84.12),
+    "Makwanpur": (27.43, 85.03),
+    "Kavrepalanchok": (27.62, 85.55),
+    "Sindhupalchok": (27.78, 85.71),
+    "Nuwakot": (27.90, 85.15),
+    "Dolakha": (27.67, 86.05),
+    "Solukhumbu": (27.50, 86.58),
+    "Kathmandu": (27.71, 85.32),
+    "Lalitpur": (27.67, 85.32),
+    "Bhaktapur": (27.67, 85.43),
+    "Palpa": (27.87, 83.55),
+    "Rupandehi": (27.53, 83.45),
+    "Dang": (28.04, 82.49),
+    "Surkhet": (28.60, 81.62),
+    "Kailali": (28.70, 80.59),
+    "Kanchanpur": (28.96, 80.18),
+    "Mustang": (28.78, 83.73),
+    "Myagdi": (28.35, 83.57),
+}
+
+NEPAL_CENTER = (28.2, 84.1)

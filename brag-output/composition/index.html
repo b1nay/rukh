@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Rukh — One trip, three sides</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <script src="assets/audio-data.js"></script>
+    <style>
+      @font-face { font-family: "Poppins"; font-weight: 400; src: url("assets/fonts/poppins-latin-400-normal.woff2") format("woff2"); }
+      @font-face { font-family: "Poppins"; font-weight: 500; src: url("assets/fonts/poppins-latin-500-normal.woff2") format("woff2"); }
+      @font-face { font-family: "Poppins"; font-weight: 600; src: url("assets/fonts/poppins-latin-600-normal.woff2") format("woff2"); }
+      @font-face { font-family: "Poppins"; font-weight: 700; src: url("assets/fonts/poppins-latin-700-normal.woff2") format("woff2"); }
+
+      :root {
+        --bg: #ffffff;
+        --muted-bg: #f6faf7;
+        --fg: #101814;
+        --muted: #5f6b65;
+        --border: #e8efea;
+        --brand: #16a34a;
+        --brand-strong: #15803d;
+        --brand-soft: #ecfdf3;
+        --brand-tint: #d9f5e3;
+        --mint: #bbf7d0;
+        --pulse: 0;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Poppins", sans-serif; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--bg); }
+      .clip { position: absolute; inset: 0; }
+      .wrap { position: absolute; inset: 0; }
+      .abs { position: absolute; }
+      p, h1, h2, h3 { margin: 0; }
+
+      /* ---------- background ---------- */
+      #bg .glow { position: absolute; border-radius: 50%; }
+      #glow-a { width: 1500px; height: 1100px; left: -520px; top: -560px; background: radial-gradient(closest-side, #dcfce7 0%, rgba(220, 252, 231, 0) 100%); }
+      #glow-b { width: 1400px; height: 1000px; right: -500px; top: -480px; background: radial-gradient(closest-side, #ecfccb 0%, rgba(236, 252, 203, 0) 100%); }
+      #glow-c { width: 1300px; height: 900px; left: 300px; bottom: -700px; background: radial-gradient(closest-side, #e3f7ea 0%, rgba(227, 247, 234, 0) 100%); }
+      #contours { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+
+      /* ---------- shared UI ---------- */
+      .card {
+        background: #ffffff;
+        border: 2px solid var(--border);
+        border-radius: 32px;
+        box-shadow: 0 30px 70px -34px rgba(22, 163, 74, calc(0.28 + var(--pulse) * 0.22)), 0 2px 6px rgba(16, 24, 20, 0.04);
+      }
+      .label { font-size: 24px; font-weight: 500; color: var(--muted); }
+      .muted { color: var(--muted); }
+      .green { color: var(--brand-strong); }
+      .pill { display: inline-flex; align-items: center; gap: 10px; border-radius: 999px; padding: 8px 20px; font-size: 24px; font-weight: 600; background: var(--brand-soft); color: var(--brand-strong); border: 2px solid var(--brand-tint); }
+      .btn { display: flex; align-items: center; justify-content: center; gap: 12px; border-radius: 16px; background: var(--brand-strong); color: #ffffff; font-size: 28px; font-weight: 600; }
+      .btn-ghost { display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 16px; background: #ffffff; color: var(--brand-strong); border: 2px solid var(--brand-tint); font-size: 26px; font-weight: 600; }
+      .cursor { position: absolute; left: 0; top: 0; width: 48px; height: 58px; }
+      .cursor svg { display: block; width: 48px; height: 58px; filter: drop-shadow(0 6px 10px rgba(16, 24, 20, 0.25)); }
+
+      .chap { position: absolute; left: 120px; top: 80px; display: flex; align-items: center; gap: 26px; }
+      .chap .num { width: 84px; height: 84px; border-radius: 50%; background: var(--brand-strong); color: #ffffff; font-size: 32px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+      .chap .name { font-size: 42px; font-weight: 600; line-height: 1.15; }
+      .chap .sub { font-size: 26px; color: var(--muted); }
+
+      #tracker { position: absolute; right: 120px; top: 104px; display: flex; align-items: center; gap: 18px; font-size: 24px; font-weight: 600; }
+      #tracker .step { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+      #tracker .dot { display: block; width: 14px; height: 14px; border-radius: 50%; background: var(--border); }
+      #tracker .sep { display: block; width: 40px; height: 2px; background: var(--border); }
+
+      /* ---------- S1 hook ---------- */
+      #s1-head { left: 120px; top: 190px; width: 1560px; font-size: 104px; font-weight: 600; line-height: 1.08; letter-spacing: -2px; }
+      #s1-head .w { display: inline-block; margin-right: 26px; }
+      #s1-route { left: 120px; top: 600px; width: 1680px; height: 300px; display: flex; align-items: center; padding: 0 64px; gap: 60px; }
+      .route { position: relative; width: 1000px; }
+      .route-row { display: flex; align-items: center; height: 100px; }
+      .code { font-size: 64px; font-weight: 700; width: 140px; text-align: center; }
+      .code.small { font-size: 40px; font-weight: 600; color: var(--muted); width: 120px; }
+      .dash-box { width: 300px; height: 6px; }
+      .dash { display: block; width: 300px; height: 6px; transform-origin: left center; background: repeating-linear-gradient(90deg, #16a34a 0 16px, rgba(22, 163, 74, 0) 16px 28px); }
+      #s1-plane { left: 120px; top: 22px; width: 56px; height: 56px; }
+      .route-sub { font-size: 28px; color: var(--muted); margin-top: 18px; padding-left: 20px; }
+      .vrule { width: 2px; height: 190px; background: var(--border); }
+      .co2 { display: flex; flex-direction: column; gap: 4px; }
+      .co2 .big { font-size: 112px; font-weight: 700; line-height: 1; color: var(--brand-strong); letter-spacing: -2px; }
+
+      /* ---------- S2 reveal ---------- */
+      #s2-logo { left: 120px; top: 96px; display: flex; align-items: center; gap: 22px; }
+      #s2-logo svg { width: 120px; height: 120px; display: block; }
+      #s2-logo span { font-size: 128px; font-weight: 700; letter-spacing: -3px; line-height: 1; }
+      #s2-tag { left: 120px; top: 270px; width: 1680px; font-size: 68px; font-weight: 600; letter-spacing: -1px; }
+      #s2-sub { left: 120px; top: 380px; font-size: 36px; color: var(--muted); font-weight: 500; }
+      .role { top: 480px; width: 530px; height: 440px; padding: 48px 44px; display: flex; flex-direction: column; gap: 18px; }
+      .role .ic { width: 104px; height: 104px; border-radius: 28px; background: var(--brand-soft); display: flex; align-items: center; justify-content: center; }
+      .role .ic svg { width: 60px; height: 60px; display: block; }
+      .role .rn { font-size: 44px; font-weight: 600; line-height: 1.1; }
+      .role .rt { font-size: 30px; color: var(--muted); line-height: 1.3; }
+      .role .pill { align-self: flex-start; margin-top: auto; }
+      #role-1 { left: 120px; }
+      #role-2 { left: 695px; background: var(--brand-strong); border-color: var(--brand-strong); color: #ffffff; }
+      #role-2 .rt { color: #ffffff; }
+      #role-2 .ic { background: #ffffff; }
+      #role-2 .pill { background: #ffffff; border-color: #ffffff; }
+      #role-3 { left: 1270px; }
+
+      /* ---------- S3 measure ---------- */
+      #s3-trip { left: 120px; top: 230px; width: 1060px; height: 740px; padding: 44px 52px; }
+      .trip-title { font-size: 42px; font-weight: 600; margin-top: 6px; }
+      .trip-meta { font-size: 26px; color: var(--muted); margin-top: 4px; }
+      #s3-chip { right: 48px; top: 48px; }
+      .tbl { margin-top: 30px; }
+      .tr { display: grid; grid-template-columns: 1fr 340px 160px; align-items: center; height: 64px; font-size: 28px; border-bottom: 2px solid var(--border); }
+      .tr.th { height: 50px; font-size: 22px; font-weight: 600; color: var(--muted); }
+      .tr .v { text-align: right; font-weight: 600; }
+      .tr.more { border-bottom: 0; color: var(--muted); font-size: 26px; }
+      #s3-stat { left: 1240px; top: 230px; width: 560px; height: 420px; padding: 44px 48px; display: flex; flex-direction: column; gap: 8px; }
+      #s3-stat .big { font-size: 128px; font-weight: 700; line-height: 1.05; color: var(--brand-strong); letter-spacing: -3px; }
+      #s3-chart { left: 1240px; top: 690px; width: 560px; height: 280px; padding: 36px 44px; }
+      .bars { display: flex; align-items: flex-end; gap: 14px; height: 150px; margin-top: 18px; }
+      .bar { display: block; flex: 1; height: 100%; border-radius: 6px; background: var(--mint); transform-origin: bottom center; }
+      .bar.hot { background: var(--brand); }
+
+      /* ---------- S4 choose ---------- */
+      .impact { top: 250px; width: 780px; height: 470px; padding: 48px 52px; display: flex; flex-direction: column; gap: 16px; }
+      .impact .nm { font-size: 46px; font-weight: 600; }
+      .impact .pr { font-size: 64px; font-weight: 700; letter-spacing: -1px; }
+      .impact .pr small { font-size: 30px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+      .impact .tg { font-size: 30px; color: var(--muted); line-height: 1.35; }
+      .impact .cl { margin-top: auto; font-size: 26px; font-weight: 600; color: var(--fg); background: var(--muted-bg); border-radius: 14px; padding: 14px 20px; }
+      #imp-protect { left: 120px; }
+      #imp-plant { left: 1020px; }
+      #imp-ring { left: 1012px; top: 242px; width: 796px; height: 486px; border: 6px solid var(--brand); border-radius: 38px; }
+      #imp-sel { left: 1580px; top: 290px; }
+      #s4-sum { left: 120px; top: 790px; width: 1680px; height: 150px; padding: 0 30px 0 52px; display: flex; align-items: center; justify-content: space-between; }
+      #s4-sum .eq { font-size: 34px; font-weight: 500; }
+      #s4-sum .eq b { font-weight: 700; }
+      #s4-btn { width: 340px; height: 90px; }
+      .eqbox { position: relative; width: 1200px; height: 60px; }
+      .eqbox .eq { position: absolute; left: 0; top: 0; height: 60px; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+      #s4-sent .tk { width: 48px; height: 48px; border-radius: 50%; background: var(--brand-strong); display: flex; align-items: center; justify-content: center; margin-right: 8px; }
+
+      /* ---------- S5 allocate ---------- */
+      #s5-req { left: 120px; top: 250px; width: 580px; height: 660px; padding: 44px 48px; display: flex; flex-direction: column; gap: 14px; }
+      #s5-req .who { font-size: 44px; font-weight: 600; line-height: 1.15; }
+      .kv { display: flex; justify-content: space-between; font-size: 28px; padding: 14px 0; border-bottom: 2px solid var(--border); }
+      .kv b { font-weight: 600; }
+      #s5-alloc { left: 150px; top: 790px; width: 520px; height: 90px; }
+      #s5-fields { left: 760px; top: 250px; width: 1040px; height: 660px; padding: 40px 44px; }
+      .fh { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+      .fh .t { font-size: 34px; font-weight: 600; }
+      #s5-auto { width: 220px; height: 72px; }
+      .frow { display: grid; grid-template-columns: 380px 1fr 150px; align-items: center; gap: 28px; height: 116px; border-bottom: 2px solid var(--border); }
+      .frow .fn { font-size: 30px; font-weight: 600; line-height: 1.2; }
+      .frow .fd { font-size: 22px; color: var(--muted); }
+      .meter { position: relative; height: 22px; border-radius: 999px; background: var(--muted-bg); border: 2px solid var(--border); overflow: hidden; }
+      .meter .fill { position: absolute; left: 0; top: 0; display: block; width: 100%; height: 100%; background: var(--brand); transform-origin: left center; }
+      .frow .ft { font-size: 28px; font-weight: 600; text-align: right; }
+      #s5-cap { left: 120px; top: 950px; width: 1680px; font-size: 32px; font-weight: 500; }
+      #s5-cap b { color: var(--brand-strong); font-weight: 600; }
+
+      /* ---------- S6 split ---------- */
+      #s6-head { left: 120px; top: 230px; font-size: 76px; font-weight: 600; letter-spacing: -1.5px; }
+      #s6-inv { left: 120px; top: 380px; width: 640px; height: 520px; padding: 44px 48px; }
+      #s6-inv .kv { font-size: 28px; }
+      .total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 26px; }
+      .total span { font-size: 30px; font-weight: 600; }
+      .total b { font-size: 60px; font-weight: 700; letter-spacing: -1px; }
+      .tile { left: 840px; width: 960px; padding: 36px 48px; }
+      #tile-a { top: 380px; height: 270px; }
+      #tile-b { top: 680px; height: 220px; }
+      .tile .row { display: flex; justify-content: space-between; align-items: flex-end; }
+      .tile .amt { font-size: 92px; font-weight: 700; line-height: 1; letter-spacing: -2px; color: var(--brand-strong); }
+      .tile .who { font-size: 34px; font-weight: 600; }
+      .tile .why { font-size: 26px; color: var(--muted); margin-top: 6px; }
+      .track { position: relative; height: 22px; margin-top: 24px; border-radius: 999px; background: var(--muted-bg); border: 2px solid var(--border); overflow: hidden; }
+      .track .fill { position: absolute; left: 0; top: 0; display: block; width: 100%; height: 100%; background: var(--brand); transform-origin: left center; }
+      #tile-b .amt { font-size: 72px; }
+      #s6-chips { left: 120px; top: 940px; display: flex; gap: 20px; }
+
+      /* ---------- S7 enrol ---------- */
+      #s7-form { left: 120px; top: 240px; width: 1000px; height: 720px; padding: 44px 52px; }
+      #s7-form .t { font-size: 38px; font-weight: 600; }
+      .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 26px; }
+      .opt { position: relative; border: 2px solid var(--border); border-radius: 22px; padding: 26px 28px; height: 190px; background: #ffffff; }
+      .opt .on { font-size: 30px; font-weight: 600; }
+      .opt .od { font-size: 24px; color: var(--muted); line-height: 1.35; margin-top: 6px; }
+      #opt-ring { left: -4px; top: -4px; right: -4px; bottom: -4px; border: 5px solid var(--brand); border-radius: 24px; }
+      .field { margin-top: 26px; }
+      .field .fl { font-size: 22px; font-weight: 600; color: var(--muted); }
+      .input { margin-top: 8px; height: 76px; border: 2px solid var(--border); border-radius: 16px; padding: 0 24px; display: flex; align-items: center; font-size: 30px; font-weight: 500; background: #ffffff; }
+      .two { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+      #s7-caret { display: inline-block; width: 3px; height: 38px; background: var(--brand-strong); margin-left: 4px; }
+      #s7-est { left: 1180px; top: 240px; width: 620px; height: 460px; padding: 44px 48px; display: flex; flex-direction: column; gap: 10px; }
+      #s7-est .big { font-size: 88px; white-space: nowrap; font-weight: 700; color: var(--brand-strong); letter-spacing: -2px; line-height: 1.05; }
+      #s7-est .kv { font-size: 26px; }
+      #s7-sat { left: 1180px; top: 730px; width: 620px; height: 230px; padding: 22px; }
+      #s7-sat svg { display: block; width: 100%; height: 100%; border-radius: 20px; }
+      #s7-ver { left: 1340px; top: 920px; }
+
+      /* ---------- S8 paid ---------- */
+      #s8-map { left: 120px; top: 240px; width: 940px; height: 720px; padding: 28px; }
+      #s8-map svg { display: block; width: 100%; height: 560px; border-radius: 22px; }
+      #s8-maplab { left: 40px; bottom: 34px; right: 40px; display: flex; justify-content: space-between; align-items: center; font-size: 28px; font-weight: 600; }
+      #s8-note { left: 1110px; top: 240px; width: 690px; height: 140px; padding: 0 32px; display: flex; align-items: center; gap: 24px; border-radius: 26px; }
+      #s8-note .bell { width: 72px; height: 72px; border-radius: 50%; background: var(--brand-soft); display: flex; align-items: center; justify-content: center; flex: none; }
+      #s8-note .nt { font-size: 28px; font-weight: 600; line-height: 1.25; }
+      #s8-note .ns { font-size: 22px; color: var(--muted); }
+      #s8-pay { left: 1110px; top: 420px; width: 690px; height: 330px; padding: 44px 48px; }
+      #s8-pay .big { font-size: 110px; font-weight: 700; letter-spacing: -3px; line-height: 1.1; margin-top: 8px; }
+      #s8-pay .row { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; }
+      .chip-plain { border-radius: 12px; background: var(--muted-bg); padding: 10px 22px; font-size: 26px; font-weight: 600; color: var(--muted); }
+      #s8-paid { font-size: 28px; padding: 10px 28px; }
+      #s8-line { left: 1110px; top: 800px; width: 690px; font-size: 52px; font-weight: 600; line-height: 1.15; letter-spacing: -1px; }
+
+      /* ---------- S9 loop + lockup ---------- */
+      #s9-loop { position: absolute; inset: 0; }
+      .node { position: absolute; top: 250px; width: 360px; display: flex; flex-direction: column; align-items: center; gap: 22px; }
+      .node .disc { width: 200px; height: 200px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+      .node .disc svg { width: 100px; height: 100px; display: block; }
+      .node .nn { font-size: 38px; font-weight: 600; }
+      #node-a { left: 180px; }
+      #node-b { left: 780px; }
+      #node-c { left: 1380px; }
+      #node-b .disc { background: var(--brand-strong); }
+      .arrow { position: absolute; top: 340px; width: 360px; height: 20px; }
+      .arrow .shaft { display: block; width: 100%; height: 6px; margin-top: 7px; background: var(--brand); transform-origin: left center; border-radius: 3px; }
+      .arrow .lab { position: absolute; left: 0; right: 0; top: -66px; text-align: center; font-size: 28px; font-weight: 600; }
+      #arr-1 { left: 540px; }
+      #arr-2 { left: 1140px; }
+      #ret { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+      #ret-lab { left: 0; width: 1920px; top: 880px; text-align: center; font-size: 34px; font-weight: 600; }
+      #s9-lock { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; }
+      #lock-logo { display: flex; align-items: center; gap: 26px; }
+      #lock-logo svg { width: 150px; height: 150px; display: block; }
+      #lock-logo span { font-size: 170px; font-weight: 700; letter-spacing: -4px; line-height: 1; }
+      #lock-tag { font-size: 64px; font-weight: 600; letter-spacing: -1px; }
+      #lock-cta { width: 380px; height: 100px; font-size: 34px; margin-top: 20px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="60">
+      <!-- ================= persistent background ================= -->
+      <div id="bg" class="clip" data-start="0" data-duration="60" data-track-index="0">
+        <div id="glow-a" class="glow" data-layout-allow-overflow></div>
+        <div id="glow-b" class="glow" data-layout-allow-overflow></div>
+        <div id="glow-c" class="glow" data-layout-allow-overflow></div>
+        <svg id="contours" viewBox="0 0 1920 1080" aria-hidden="true">
+          <g fill="none" stroke="#d9f5e3" stroke-width="3">
+            <path d="M0 860 Q480 800 960 850 T1920 830" />
+            <path d="M0 920 Q480 860 960 910 T1920 890" />
+            <path d="M0 980 Q480 920 960 970 T1920 950" />
+            <path d="M0 1040 Q480 980 960 1030 T1920 1010" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- ================= chapter tracker (scenes 3-8) ================= -->
+      <div id="trk" class="clip" data-start="10.38" data-duration="41.45" data-track-index="1">
+        <div id="tracker">
+          <div class="step" id="trk-1"><span class="dot" id="trk-d1"></span>Climate Partner</div>
+          <span class="sep"></span>
+          <div class="step" id="trk-2"><span class="dot" id="trk-d2"></span>Rukh</div>
+          <span class="sep"></span>
+          <div class="step" id="trk-3"><span class="dot" id="trk-d3"></span>Land Partner</div>
+        </div>
+      </div>
+
+      <!-- ================= S1 hook ================= -->
+      <section id="s1" class="clip" data-start="0" data-duration="5.19" data-track-index="2">
+        <div class="wrap" id="s1-w">
+          <h1 id="s1-head" class="abs"><span class="w">Every</span><span class="w">flight</span><span class="w">to</span><span class="w">Nepal</span><span class="w">leaves</span><span class="w">something</span><span class="w green">behind.</span></h1>
+          <div id="s1-route" class="abs card">
+            <div class="route">
+              <div class="route-row">
+                <div class="code">LHR</div>
+                <div class="dash-box"><span class="dash" id="s1-d1"></span></div>
+                <div class="code small">DOH</div>
+                <div class="dash-box"><span class="dash" id="s1-d2"></span></div>
+                <div class="code">KTM</div>
+              </div>
+              <svg id="s1-plane" class="abs" viewBox="0 0 24 24" aria-hidden="true"><path fill="#15803d" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5Z" transform="rotate(90 12 12)" /></svg>
+              <p class="route-sub">London ⇄ Kathmandu via Doha · 7,359 km each way</p>
+            </div>
+            <div class="vrule"></div>
+            <div class="co2">
+              <p class="label">CO₂ per traveler</p>
+              <p class="big" id="s1-co2">0.00 t</p>
+              <p class="label">round trip, economy</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= S2 reveal ================= -->
+      <section id="s2" class="clip" data-start="5.19" data-duration="5.19" data-track-index="2">
+        <div class="wrap" id="s2-w">
+          <div id="s2-logo" class="abs">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#16a34a" d="M12 2c3.6 2.4 5.6 5.6 5.6 9a5.6 5.6 0 0 1-4.6 5.5V22h-2v-5.5A5.6 5.6 0 0 1 6.4 11C6.4 7.6 8.4 4.4 12 2Z" /></svg>
+            <span>Rukh</span>
+          </div>
+          <h2 id="s2-tag" class="abs">Offset Travel with Real Trees in <span class="green">Nepal</span></h2>
+          <p id="s2-sub" class="abs">One platform. Three sides.</p>
+          <div id="role-1" class="abs card role">
+            <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#15803d" stroke-width="1.8"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.8 3.8 5.8 3.8 9S14.6 18.2 12 21c-2.6-2.8-3.8-5.8-3.8-9S9.4 5.8 12 3Z" /></g></svg></div>
+            <p class="rn">Climate Partner</p>
+            <p class="rt">I want to offset travel emissions</p>
+            <span class="pill">Pays per tonne</span>
+          </div>
+          <div id="role-2" class="abs card role">
+            <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#15803d" d="M12 2c3.6 2.4 5.6 5.6 5.6 9a5.6 5.6 0 0 1-4.6 5.5V22h-2v-5.5A5.6 5.6 0 0 1 6.4 11C6.4 7.6 8.4 4.4 12 2Z" /></svg></div>
+            <p class="rn">Rukh</p>
+            <p class="rt">Matches each tonne to real trees</p>
+            <span class="pill">Earns a platform fee</span>
+          </div>
+          <div id="role-3" class="abs card role">
+            <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#15803d"><circle cx="12" cy="8.5" r="6" /><rect x="11" y="13" width="2" height="9" rx="1" /></g></svg></div>
+            <p class="rn">Land Partner</p>
+            <p class="rt">I own trees or land in Nepal</p>
+            <span class="pill">Earns 60% of every tonne</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= S3 climate partner: measure ================= -->
+      <section id="s3" class="clip" data-start="10.38" data-duration="7.09" data-track-index="2">
+        <div class="wrap" id="s3-w">
+          <div class="chap" id="s3-chap">
+            <div class="num">01</div>
+            <div><p class="name">Climate Partner</p><p class="sub">I want to offset travel emissions</p></div>
+          </div>
+          <div id="s3-trip" class="abs card">
+            <p class="label">New trip</p>
+            <p class="trip-title">Annapurna Base Camp · 14 days</p>
+            <p class="trip-meta">Himalaya Treks · 12 travelers · LHR ⇄ KTM</p>
+            <span id="s3-chip" class="abs pill">Pasted from spreadsheet</span>
+            <div class="tbl">
+              <div class="tr th"><span>Traveler</span><span>Route</span><span class="v">CO₂</span></div>
+              <div class="tr s3-row"><span>A. Patel</span><span class="muted">LHR · via DOH</span><span class="v">1.58 t</span></div>
+              <div class="tr s3-row"><span>J. Carter</span><span class="muted">LHR · via DOH</span><span class="v">1.58 t</span></div>
+              <div class="tr s3-row"><span>M. Rossi</span><span class="muted">LHR · via DOH</span><span class="v">1.58 t</span></div>
+              <div class="tr s3-row"><span>L. Schmidt</span><span class="muted">LHR · via DOH</span><span class="v">1.58 t</span></div>
+              <div class="tr s3-row"><span>S. Okafor</span><span class="muted">LHR · via DOH</span><span class="v">1.58 t</span></div>
+              <div class="tr s3-row"><span>E. Novak</span><span class="muted">LHR · via DOH</span><span class="v">1.58 t</span></div>
+              <div class="tr more s3-row"><span>+ 6 more travelers</span><span></span><span class="v">9.48 t</span></div>
+            </div>
+          </div>
+          <div id="s3-stat" class="abs card">
+            <p class="label">CO₂ measured</p>
+            <p class="big" id="s3-co2">0.00 t</p>
+            <p class="label">12 travelers · round trip</p>
+            <span class="pill" style="align-self: flex-start; margin-top: 16px">0 trees allocated yet</span>
+          </div>
+          <div id="s3-chart" class="abs card">
+            <p class="label">Emissions by month</p>
+            <div class="bars">
+              <span class="bar" style="height: 30%"></span><span class="bar" style="height: 45%"></span><span class="bar" style="height: 38%"></span><span class="bar" style="height: 60%"></span><span class="bar" style="height: 52%"></span><span class="bar" style="height: 75%"></span><span class="bar" style="height: 68%"></span><span class="bar hot" style="height: 100%"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= S4 climate partner: choose & request ================= -->
+      <section id="s4" class="clip" data-start="17.47" data-duration="6.54" data-track-index="2">
+        <div class="wrap" id="s4-w">
+          <div class="chap">
+            <div class="num">01</div>
+            <div><p class="name">Climate Partner</p><p class="sub">Choose how your tonnes are covered</p></div>
+          </div>
+          <div id="imp-protect" class="abs card impact">
+            <p class="nm">Protect</p>
+            <p class="pr">$18 <small>/ tonne</small></p>
+            <p class="tg">Pay for this year's measured growth of standing trees</p>
+            <p class="cl">Claim: “contribution to Nepali forests”</p>
+          </div>
+          <div id="imp-plant" class="abs card impact">
+            <p class="nm">Plant</p>
+            <p class="pr">$34 <small>/ tonne</small></p>
+            <p class="tg">New trees planted for you, absorbing CO₂ over 30 years</p>
+            <p class="cl" id="imp-claim">Claim: “funded verified carbon removal”</p>
+          </div>
+          <div id="imp-ring" class="abs"></div>
+          <span id="imp-sel" class="abs pill">Selected</span>
+          <div id="s4-sum" class="abs card">
+            <div class="eqbox">
+              <p class="eq" id="s4-eq" data-layout-allow-overlap>18.96 t × $34 = <b>$644.64</b> <span class="muted">+ platform fee 7% $45.12</span></p>
+              <p class="eq" id="s4-sent" data-layout-allow-overlap><span class="tk"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg></span>Request sent · bill <b>$689.76</b> <span class="muted">· Rukh notified</span></p>
+            </div>
+            <div id="s4-btn" class="btn">Request trees</div>
+          </div>
+          <div class="cursor" id="s4-cur"><svg viewBox="0 0 24 29" aria-hidden="true"><path d="M2 2v22l6-5.5 4 9 3.6-1.6-4-8.8H20Z" fill="#101814" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round" /></svg></div>
+        </div>
+      </section>
+
+      <!-- ================= S5 rukh: allocate ================= -->
+      <section id="s5" class="clip" data-start="24.01" data-duration="6.55" data-track-index="2">
+        <div class="wrap" id="s5-w">
+          <div class="chap" id="s5-chap">
+            <div class="num">02</div>
+            <div><p class="name">Rukh</p><p class="sub">Platform control: requests, capacity and billing</p></div>
+          </div>
+          <div id="s5-req" class="abs card">
+            <p class="label">Request #1042</p>
+            <p class="who">Himalaya Treks</p>
+            <p class="muted" style="font-size: 28px">Annapurna Base Camp</p>
+            <div class="kv"><span class="muted">CO₂ to cover</span><b>18.96 t · Plant</b></div>
+            <div class="kv"><span class="muted">New trees needed</span><b>48 Utis</b></div>
+            <div class="kv"><span class="muted">Client bill</span><b>$689.76</b></div>
+          </div>
+          <div id="s5-alloc" class="abs btn">Allocate &amp; bill client →</div>
+          <div id="s5-fields" class="abs card">
+            <div class="fh"><p class="t">Selected fields</p><div id="s5-auto" class="btn-ghost">Auto-fill</div></div>
+            <div class="frow"><div><p class="fn">Gurung terrace</p><p class="fd">Kaski · 12 slots</p></div><div class="meter"><span class="fill" id="m1"></span></div><p class="ft" id="f1">0 / 12</p></div>
+            <div class="frow"><div><p class="fn">Tamang plot</p><p class="fd">Lamjung · 14 slots</p></div><div class="meter"><span class="fill" id="m2"></span></div><p class="ft" id="f2">0 / 14</p></div>
+            <div class="frow"><div><p class="fn">Rai hillside</p><p class="fd">Syangja · 18 slots</p></div><div class="meter"><span class="fill" id="m3"></span></div><p class="ft" id="f3">0 / 18</p></div>
+            <div class="frow" style="border-bottom: 0"><div><p class="fn">Magar community forest</p><p class="fd">Parbat · 60 slots</p></div><div class="meter"><span class="fill" id="m4"></span></div><p class="ft" id="f4">0 / 60</p></div>
+          </div>
+          <p id="s5-cap" class="abs"><b>Auto-fill</b> uses the smallest fields first, so income reaches small farms.</p>
+          <div class="cursor" id="s5-cur"><svg viewBox="0 0 24 29" aria-hidden="true"><path d="M2 2v22l6-5.5 4 9 3.6-1.6-4-8.8H20Z" fill="#101814" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round" /></svg></div>
+        </div>
+      </section>
+
+      <!-- ================= S6 rukh: the split ================= -->
+      <section id="s6" class="clip" data-start="30.56" data-duration="8.18" data-track-index="2">
+        <div class="wrap" id="s6-w">
+          <div class="chap">
+            <div class="num">02</div>
+            <div><p class="name">Rukh</p><p class="sub">Invoice issued · due in 14 days</p></div>
+          </div>
+          <h2 id="s6-head" class="abs">Rukh earns when the trees do.</h2>
+          <div id="s6-inv" class="abs card">
+            <p class="label">Invoice INV-1042 · Himalaya Treks</p>
+            <div style="margin-top: 22px">
+              <div class="kv s6-line"><span>Trees · 18.96 t × $34</span><b>$644.64</b></div>
+              <div class="kv s6-line"><span>Platform fee (7%)</span><b>$45.12</b></div>
+              <div class="kv s6-line"><span class="muted">Plan</span><b>Operator</b></div>
+            </div>
+            <div class="total s6-line"><span>Total</span><b>$689.76</b></div>
+          </div>
+          <div id="tile-a" class="abs card tile">
+            <div class="row"><div><p class="who">To Land Partners</p><p class="why">60% of every tonne absorbed</p></div><p class="amt" id="s6-a">$0.00</p></div>
+            <div class="track"><span class="fill" id="s6-fa"></span></div>
+          </div>
+          <div id="tile-b" class="abs card tile">
+            <div class="row"><div><p class="who">To Rukh</p><p class="why">7% platform fee on the Operator plan</p></div><p class="amt" id="s6-b">$0.00</p></div>
+            <div class="track"><span class="fill" id="s6-fb"></span></div>
+          </div>
+          <div id="s6-chips" class="abs">
+            <span class="pill s6-chip">15% buffer held back</span>
+            <span class="pill s6-chip">No tree is sold twice.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= S7 land partner: enrol ================= -->
+      <section id="s7" class="clip" data-start="38.74" data-duration="7.08" data-track-index="2">
+        <div class="wrap" id="s7-w">
+          <div class="chap" id="s7-chap">
+            <div class="num">03</div>
+            <div><p class="name">Land Partner</p><p class="sub">I own trees or land in Nepal</p></div>
+          </div>
+          <div id="s7-form" class="abs card">
+            <p class="t">Add a field</p>
+            <div class="opts">
+              <div class="opt"><p class="on">Trees already growing</p><p class="od">Get paid each year to keep them standing</p></div>
+              <div class="opt"><div id="opt-ring" class="abs"></div><p class="on">Land for new trees</p><p class="od">Host new trees planted for Climate Partners</p></div>
+            </div>
+            <div class="field"><p class="fl">Field name</p><div class="input"><span id="s7-name"></span><span id="s7-caret"></span></div></div>
+            <div class="two">
+              <div class="field"><p class="fl">Land area</p><div class="input"><span id="s7-area">0.4 ha</span></div></div>
+              <div class="field"><p class="fl">Species to plant</p><div class="input"><span id="s7-sp">Utis (Alnus nepalensis)</span></div></div>
+            </div>
+          </div>
+          <div id="s7-est" class="abs card">
+            <p class="label">Estimated earnings</p>
+            <p class="big" id="s7-npr">NPR 0</p>
+            <div class="kv"><span class="muted">Planting slots</span><b>12 trees</b></div>
+            <div class="kv" style="border-bottom: 0"><span class="muted">Your share</span><b>60% of every tonne</b></div>
+          </div>
+          <div id="s7-sat" class="abs card">
+            <svg viewBox="0 0 280 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true" data-layout-allow-overflow>
+              <rect width="280" height="120" fill="#e7f6ec" />
+              <g fill="none" stroke="#cdebd7" stroke-width="1.5"><path d="M0 20 Q70 10 140 18 T280 16" /><path d="M0 45 Q70 35 140 43 T280 41" /><path d="M0 70 Q70 60 140 68 T280 66" /><path d="M0 95 Q70 85 140 93 T280 91" /></g>
+              <path id="s7-poly" d="M60 22 L220 18 L236 92 L176 108 L72 102 Z" fill="rgba(22,163,74,0.10)" stroke="#16a34a" stroke-width="2" stroke-dasharray="6 4" />
+            </svg>
+          </div>
+          <span id="s7-ver" class="abs pill"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg>Verified by satellite</span>
+        </div>
+      </section>
+
+      <!-- ================= S8 land partner: get paid ================= -->
+      <section id="s8" class="clip" data-start="45.82" data-duration="6.01" data-track-index="2">
+        <div class="wrap" id="s8-w">
+          <div class="chap">
+            <div class="num">03</div>
+            <div><p class="name">Land Partner</p><p class="sub">Gurung terrace · Kaski</p></div>
+          </div>
+          <div id="s8-map" class="abs card">
+            <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true" data-layout-allow-overflow>
+              <rect width="280" height="160" fill="#e7f6ec" />
+              <g fill="none" stroke="#cdebd7" stroke-width="1.5"><path d="M0 20 Q70 10 140 18 T280 16" /><path d="M0 45 Q70 35 140 43 T280 41" /><path d="M0 70 Q70 60 140 68 T280 66" /><path d="M0 95 Q70 85 140 93 T280 91" /><path d="M0 120 Q70 110 140 118 T280 116" /><path d="M0 145 Q70 135 140 143 T280 141" /></g>
+              <path d="M45 26 L235 20 L252 120 L182 146 L58 138 Z" fill="rgba(22,163,74,0.08)" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="5 4" />
+              <g fill="#bbf7d0">
+                <circle cx="80" cy="52" r="7" /><circle cx="120" cy="48" r="7" /><circle cx="160" cy="46" r="7" /><circle cx="200" cy="44" r="7" />
+                <circle cx="84" cy="84" r="7" /><circle cx="124" cy="82" r="7" /><circle cx="164" cy="80" r="7" /><circle cx="206" cy="78" r="7" />
+                <circle cx="90" cy="116" r="7" /><circle cx="130" cy="114" r="7" /><circle cx="170" cy="112" r="7" /><circle cx="212" cy="110" r="7" />
+              </g>
+              <g fill="#16a34a">
+                <circle class="tree" cx="80" cy="52" r="8" /><circle class="tree" cx="120" cy="48" r="8" /><circle class="tree" cx="160" cy="46" r="8" /><circle class="tree" cx="200" cy="44" r="8" />
+                <circle class="tree" cx="84" cy="84" r="8" /><circle class="tree" cx="124" cy="82" r="8" /><circle class="tree" cx="164" cy="80" r="8" /><circle class="tree" cx="206" cy="78" r="8" />
+                <circle class="tree" cx="90" cy="116" r="8" /><circle class="tree" cx="130" cy="114" r="8" /><circle class="tree" cx="170" cy="112" r="8" /><circle class="tree" cx="212" cy="110" r="8" />
+              </g>
+            </svg>
+            <div id="s8-maplab" class="abs"><span>12 Utis trees · funded</span><span class="pill">Himalaya Treks</span></div>
+          </div>
+          <div id="s8-note" class="abs card">
+            <div class="bell"><svg viewBox="0 0 24 24" width="38" height="38" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6Zm-2 15a2 2 0 0 0 4 0" fill="none" stroke="#15803d" stroke-width="2" stroke-linejoin="round" /></svg></div>
+            <div><p class="nt">Himalaya Treks funded 12 trees on your field</p><p class="ns">Gurung terrace · Kaski</p></div>
+          </div>
+          <div id="s8-pay" class="abs card">
+            <p class="label">Payout · Sita Gurung</p>
+            <p class="big" id="s8-npr">NPR 13,054</p>
+            <div class="row"><span class="chip-plain">eSewa</span><span class="pill" id="s8-paid">Paid</span></div>
+          </div>
+          <p id="s8-line" class="abs">Get paid to keep them <span class="green">growing.</span></p>
+        </div>
+      </section>
+
+      <!-- ================= S9 loop + lockup ================= -->
+      <section id="s9" class="clip" data-start="51.83" data-duration="8.17" data-track-index="2">
+        <div class="wrap" id="s9-w">
+          <div id="s9-loop">
+            <svg id="ret" viewBox="0 0 1920 1080" aria-hidden="true">
+              <path id="ret-path" d="M1560 560 C1560 820 1180 840 960 840 C740 840 360 820 360 600" fill="none" stroke="#16a34a" stroke-width="6" stroke-linecap="round" stroke-dasharray="14 14" />
+              <path id="ret-head" d="M340 618 L360 586 L380 618" fill="none" stroke="#16a34a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="node" id="node-a">
+              <div class="disc card"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#15803d" stroke-width="1.8"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.8 3.8 5.8 3.8 9S14.6 18.2 12 21c-2.6-2.8-3.8-5.8-3.8-9S9.4 5.8 12 3Z" /></g></svg></div>
+              <p class="nn">Climate Partner</p>
+            </div>
+            <div class="arrow" id="arr-1"><p class="lab">pays $689.76</p><span class="shaft"></span></div>
+            <div class="node" id="node-b">
+              <div class="disc"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#ffffff" d="M12 2c3.6 2.4 5.6 5.6 5.6 9a5.6 5.6 0 0 1-4.6 5.5V22h-2v-5.5A5.6 5.6 0 0 1 6.4 11C6.4 7.6 8.4 4.4 12 2Z" /></svg></div>
+              <p class="nn">Rukh</p>
+            </div>
+            <div class="arrow" id="arr-2"><p class="lab">pays NPR 52,216</p><span class="shaft"></span></div>
+            <div class="node" id="node-c">
+              <div class="disc card"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#15803d"><circle cx="12" cy="8.5" r="6" /><rect x="11" y="13" width="2" height="9" rx="1" /></g></svg></div>
+              <p class="nn">Land Partner</p>
+            </div>
+            <p id="ret-lab" class="abs">48 real trees, shown on a map, not a certificate number</p>
+          </div>
+          <div id="s9-lock">
+            <div id="lock-logo">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#16a34a" d="M12 2c3.6 2.4 5.6 5.6 5.6 9a5.6 5.6 0 0 1-4.6 5.5V22h-2v-5.5A5.6 5.6 0 0 1 6.4 11C6.4 7.6 8.4 4.4 12 2Z" /></svg>
+              <span>Rukh</span>
+            </div>
+            <p id="lock-tag">Offset Travel with Real Trees in <span class="green">Nepal</span></p>
+            <div id="lock-cta" class="btn">Start for free →</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= audio ================= -->
+      <audio id="bgm" src="assets/music/happy-beats-business-moves-vol-10-by-ende-dot-app.mp3" data-start="0" data-duration="60" data-track-index="10" data-volume="0.32"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.4,"v":1},{"t":57.6,"v":1},{"t":60,"v":0}]}]}'></audio>
+
+      <audio id="sfx-01" src="assets/sfx/impact/impactSoft_medium_001.ogg" data-start="2.72" data-duration="0.18" data-track-index="11" data-volume="0.7"></audio>
+      <audio id="sfx-02" src="assets/sfx/interface/drop_002.ogg" data-start="4.2" data-duration="0.19" data-track-index="12" data-volume="0.6"></audio>
+      <audio id="sfx-03" src="assets/sfx/impact/impactSoft_medium_004.ogg" data-start="5.22" data-duration="0.14" data-track-index="13" data-volume="0.75"></audio>
+      <audio id="sfx-04" src="assets/sfx/casino/card-slide-1.ogg" data-start="6.80" data-duration="0.6" data-track-index="14" data-volume="0.55"></audio>
+      <audio id="sfx-05" src="assets/sfx/casino/card-slide-1.ogg" data-start="7.33" data-duration="0.6" data-track-index="15" data-volume="0.55"></audio>
+      <audio id="sfx-06" src="assets/sfx/casino/card-slide-1.ogg" data-start="7.77" data-duration="0.6" data-track-index="16" data-volume="0.55"></audio>
+      <audio id="sfx-07" src="assets/sfx/impact/impactSoft_medium_001.ogg" data-start="10.42" data-duration="0.18" data-track-index="17" data-volume="0.7"></audio>
+      <audio id="sfx-08" src="assets/sfx/casino/card-slide-1.ogg" data-start="11.45" data-duration="0.6" data-track-index="18" data-volume="0.55"></audio>
+      <audio id="sfx-09" src="assets/sfx/interface/drop_001.ogg" data-start="14.2" data-duration="0.1" data-track-index="19" data-volume="0.65"></audio>
+      <audio id="sfx-10" src="assets/sfx/ui/mouseclick1.ogg" data-start="19.10" data-duration="0.05" data-track-index="20" data-volume="0.8"></audio>
+      <audio id="sfx-11" src="assets/sfx/ui/mouseclick1.ogg" data-start="21.28" data-duration="0.05" data-track-index="21" data-volume="0.8"></audio>
+      <audio id="sfx-12" src="assets/sfx/interface/drop_002.ogg" data-start="21.45" data-duration="0.19" data-track-index="22" data-volume="0.6"></audio>
+      <audio id="sfx-13" src="assets/sfx/impact/impactSoft_medium_004.ogg" data-start="24.04" data-duration="0.14" data-track-index="23" data-volume="0.75"></audio>
+      <audio id="sfx-14" src="assets/sfx/ui/mouseclick1.ogg" data-start="25.62" data-duration="0.05" data-track-index="24" data-volume="0.8"></audio>
+      <audio id="sfx-15" src="assets/sfx/interface/drop_001.ogg" data-start="26.20" data-duration="0.1" data-track-index="25" data-volume="0.55"></audio>
+      <audio id="sfx-16" src="assets/sfx/interface/drop_002.ogg" data-start="27.83" data-duration="0.19" data-track-index="26" data-volume="0.6"></audio>
+      <audio id="sfx-17" src="assets/sfx/ui/mouseclick1.ogg" data-start="29.10" data-duration="0.05" data-track-index="27" data-volume="0.8"></audio>
+      <audio id="sfx-18" src="assets/sfx/casino/card-slide-1.ogg" data-start="30.60" data-duration="0.6" data-track-index="28" data-volume="0.55"></audio>
+      <audio id="sfx-19" src="assets/sfx/impact/impactSoft_medium_001.ogg" data-start="32.19" data-duration="0.18" data-track-index="29" data-volume="0.7"></audio>
+      <audio id="sfx-20" src="assets/sfx/interface/drop_001.ogg" data-start="33.84" data-duration="0.1" data-track-index="30" data-volume="0.6"></audio>
+      <audio id="sfx-21" src="assets/sfx/interface/drop_002.ogg" data-start="35.47" data-duration="0.19" data-track-index="31" data-volume="0.55"></audio>
+      <audio id="sfx-22" src="assets/sfx/impact/impactSoft_medium_004.ogg" data-start="38.77" data-duration="0.14" data-track-index="32" data-volume="0.75"></audio>
+      <audio id="sfx-23" src="assets/sfx/keyboard/keypress-001.wav" data-start="40.00" data-duration="0.24" data-track-index="33" data-volume="0.45"></audio>
+      <audio id="sfx-24" src="assets/sfx/keyboard/keypress-007.wav" data-start="40.26" data-duration="0.24" data-track-index="34" data-volume="0.45"></audio>
+      <audio id="sfx-25" src="assets/sfx/keyboard/keypress-004.wav" data-start="40.55" data-duration="0.24" data-track-index="35" data-volume="0.45"></audio>
+      <audio id="sfx-26" src="assets/sfx/keyboard/keypress-013.wav" data-start="40.83" data-duration="0.24" data-track-index="36" data-volume="0.45"></audio>
+      <audio id="sfx-27" src="assets/sfx/keyboard/keypress-010.wav" data-start="41.12" data-duration="0.24" data-track-index="37" data-volume="0.45"></audio>
+      <audio id="sfx-28" src="assets/sfx/interface/drop_001.ogg" data-start="43.65" data-duration="0.1" data-track-index="38" data-volume="0.65"></audio>
+      <audio id="sfx-29" src="assets/sfx/casino/card-slide-1.ogg" data-start="45.95" data-duration="0.6" data-track-index="39" data-volume="0.55"></audio>
+      <audio id="sfx-30" src="assets/sfx/impact/impactBell_heavy_000.ogg" data-start="48.55" data-duration="1.48" data-track-index="40" data-volume="0.6"></audio>
+      <audio id="sfx-31" src="assets/sfx/impact/impactSoft_medium_001.ogg" data-start="51.86" data-duration="0.18" data-track-index="41" data-volume="0.7"></audio>
+      <audio id="sfx-32" src="assets/sfx/impact/impactBell_heavy_003.ogg" data-start="56.19" data-duration="0.65" data-track-index="42" data-volume="0.6"></audio>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        const root = document.getElementById("root");
+        const q = (s) => document.querySelector(s);
+        const qa = (s) => Array.from(document.querySelectorAll(s));
+
+        // Count a number from `from` to `to` inside `el`, seek-safe.
+        function count(el, from, to, at, dur, fmt) {
+          const o = { v: from };
+          el.textContent = fmt(from);
+          tl.fromTo(o, { v: from }, { v: to, duration: dur, ease: "power2.out", onUpdate: () => (el.textContent = fmt(o.v)) }, at);
+        }
+        const t2 = (v) => v.toFixed(2) + " t";
+        const usd = (v) => "$" + v.toFixed(2);
+        const npr = (v) => "NPR " + Math.round(v).toLocaleString("en-US");
+
+        // Scene shells: slide in, fade out on cut.
+        function shell(id, start, dur) {
+          const w = q(id);
+          tl.fromTo(w, { opacity: 0, y: 36 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, start);
+          tl.to(w, { opacity: 0, y: -24, duration: 0.3, ease: "power2.in" }, start + dur - 0.3);
+        }
+        function click(cur, at) {
+          tl.to(cur, { scale: 0.82, duration: 0.08, ease: "power2.in", transformOrigin: "10% 10%" }, at - 0.08);
+          tl.to(cur, { scale: 1, duration: 0.16, ease: "back.out(3)" }, at);
+        }
+
+        // ---------- background (ambient + audio-reactive) ----------
+        tl.fromTo("#glow-a", { x: 0, y: 0 }, { x: 140, y: 60, duration: 60, ease: "sine.inOut" }, 0);
+        tl.fromTo("#glow-b", { x: 0, y: 0 }, { x: -160, y: 80, duration: 60, ease: "sine.inOut" }, 0);
+        tl.fromTo("#glow-c", { x: 0 }, { x: 260, duration: 60, ease: "sine.inOut" }, 0);
+        tl.fromTo("#contours", { x: 0 }, { x: -120, duration: 60, ease: "none" }, 0);
+        const AD = window.AUDIO_DATA;
+        const ga = q("#glow-a"), gb = q("#glow-b"), gc = q("#glow-c");
+        for (let f = 0; f < AD.totalFrames; f++) {
+          const r = AD.rms[f], b = AD.bass[f];
+          tl.call(() => {
+            ga.style.opacity = (0.75 + 0.25 * b).toFixed(3);
+            gb.style.opacity = (0.7 + 0.3 * r).toFixed(3);
+            gc.style.opacity = (0.65 + 0.35 * b).toFixed(3);
+            root.style.setProperty("--pulse", r.toFixed(3));
+          }, [], f / AD.fps);
+        }
+
+        // ---------- S1 hook 0–5.19 ----------
+        shell("#s1-w", 0, 5.19);
+        tl.fromTo(".w", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", stagger: 0.09 }, 0.15);
+        tl.fromTo("#s1-route", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 2.55);
+        tl.fromTo("#s1-d1", { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: "none" }, 2.9);
+        tl.fromTo("#s1-d2", { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: "none" }, 3.45);
+        tl.fromTo("#s1-plane", { x: 0, opacity: 0 }, { x: 640, opacity: 1, duration: 1.1, ease: "none" }, 2.9);
+        count(q("#s1-co2"), 0, 1.58, 2.9, 1.3, t2);
+
+        // ---------- S2 reveal 5.19–10.38 ----------
+        shell("#s2-w", 5.19, 5.19);
+        tl.fromTo("#s2-logo", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.55, ease: "back.out(1.6)", transformOrigin: "left center" }, 5.22);
+        tl.fromTo("#s2-tag", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 5.6);
+        tl.fromTo("#s2-sub", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 6.28);
+        // beat-grid: role cards at 6.82, 7.35, 7.79
+        tl.fromTo("#role-1", { opacity: 0, y: 120 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 6.82);
+        tl.fromTo("#role-2", { opacity: 0, y: 120 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 7.35);
+        tl.fromTo("#role-3", { opacity: 0, y: 120 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 7.79);
+
+        // ---------- tracker 10.38–51.83 ----------
+        tl.fromTo("#tracker", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 10.45);
+        tl.to("#tracker", { opacity: 0, duration: 0.3 }, 51.5);
+        const on = { color: "#15803d", duration: 0.3 }, off = { color: "#5f6b65", duration: 0.3 };
+        tl.set("#trk-1", { color: "#15803d" }, 10.38).set("#trk-d1", { backgroundColor: "#16a34a" }, 10.38);
+        tl.to("#trk-1", off, 24.01).to("#trk-d1", { backgroundColor: "#e8efea", duration: 0.3 }, 24.01);
+        tl.to("#trk-2", on, 24.01).to("#trk-d2", { backgroundColor: "#16a34a", duration: 0.3 }, 24.01);
+        tl.to("#trk-2", off, 38.74).to("#trk-d2", { backgroundColor: "#e8efea", duration: 0.3 }, 38.74);
+        tl.to("#trk-3", on, 38.74).to("#trk-d3", { backgroundColor: "#16a34a", duration: 0.3 }, 38.74);
+
+        // ---------- S3 measure 10.38–17.47 ----------
+        shell("#s3-w", 10.38, 7.09);
+        tl.fromTo("#s3-chap", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 10.45);
+        tl.fromTo("#s3-trip", { opacity: 0, y: 70 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 10.75);
+        tl.fromTo("#s3-stat", { opacity: 0, x: 80 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 10.95);
+        tl.fromTo("#s3-chart", { opacity: 0, x: 80 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 11.1);
+        tl.fromTo("#s3-chip", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 11.45);
+        tl.fromTo(".s3-row", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.3, ease: "power2.out", stagger: 0.11 }, 11.5);
+        count(q("#s3-co2"), 0, 18.96, 12.3, 1.9, t2);
+        tl.fromTo("#s3-chart .bar", { scaleY: 0 }, { scaleY: 1, duration: 0.5, ease: "power3.out", stagger: 0.06 }, 11.4);
+        tl.fromTo("#s3-stat .big", { scale: 1 }, { scale: 1.06, duration: 0.15, yoyo: true, repeat: 1, ease: "power2.out", transformOrigin: "left center" }, 14.2);
+
+        // ---------- S4 choose & request 17.47–24.01 ----------
+        shell("#s4-w", 17.47, 6.54);
+        tl.fromTo("#imp-protect", { opacity: 0, y: 70 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 17.55);
+        tl.fromTo("#imp-plant", { opacity: 0, y: 70 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 17.72);
+        tl.fromTo("#s4-sum", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 17.95);
+        // cursor: enters bottom-right, clicks Plant (~1400,520), then Request trees (~1600,860)
+        tl.fromTo("#s4-cur", { x: 1820, y: 1100, opacity: 0 }, { x: 1440, y: 540, opacity: 1, duration: 0.9, ease: "power3.inOut" }, 18.2);
+        click("#s4-cur", 19.1);
+        tl.fromTo("#imp-ring", { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power3.out" }, 19.1);
+        tl.fromTo("#imp-sel", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2.2)" }, 19.15);
+        tl.to("#imp-protect", { opacity: 0.8, duration: 0.3 }, 19.15);
+        tl.fromTo("#imp-claim", { backgroundColor: "#f6faf7" }, { backgroundColor: "#d9f5e3", duration: 0.35 }, 19.3);
+        tl.to("#s4-cur", { x: 1610, y: 870, duration: 0.75, ease: "power3.inOut" }, 20.45);
+        click("#s4-cur", 21.28);
+        tl.to("#s4-btn", { scale: 0.95, duration: 0.08, yoyo: true, repeat: 1 }, 21.22);
+        tl.to("#s4-eq", { opacity: 0, y: -20, duration: 0.25, ease: "power2.in" }, 21.35);
+        tl.fromTo("#s4-sent", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.8)" }, 21.5);
+        tl.to("#s4-btn", { backgroundColor: "#101814", duration: 0.25 }, 21.4);
+        tl.to("#s4-cur", { opacity: 0, duration: 0.3 }, 22.2);
+
+        // ---------- S5 allocate 24.01–30.56 ----------
+        shell("#s5-w", 24.01, 6.55);
+        tl.fromTo("#s5-chap", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 24.08);
+        tl.fromTo("#s5-req", { opacity: 0, x: -70 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 24.3);
+        tl.fromTo("#s5-alloc", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 24.6);
+        tl.fromTo("#s5-fields", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 24.4);
+        tl.fromTo("#s5-cur", { x: 1900, y: 700, opacity: 0 }, { x: 1680, y: 320, opacity: 1, duration: 0.75, ease: "power3.inOut" }, 24.8);
+        click("#s5-cur", 25.62);
+        tl.to("#s5-auto", { backgroundColor: "#ecfdf3", duration: 0.2 }, 25.62);
+        tl.fromTo("#s5-cap", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 25.85);
+        // beat-grid: meters fill smallest-first at 26.20, 26.74, 27.28, 27.83
+        const fills = [["#m1", "#f1", 12, 12, 26.2], ["#m2", "#f2", 14, 14, 26.74], ["#m3", "#f3", 18, 18, 27.28], ["#m4", "#f4", 4, 60, 27.83]];
+        fills.forEach(([m, f, n, cap, at]) => {
+          tl.fromTo(m, { scaleX: 0 }, { scaleX: n / cap, duration: 0.45, ease: "power2.out" }, at);
+          count(q(f), 0, n, at, 0.45, (v) => Math.round(v) + " / " + cap);
+        });
+        tl.to("#s5-cur", { x: 470, y: 840, duration: 0.85, ease: "power3.inOut" }, 28.2);
+        click("#s5-cur", 29.1);
+        tl.to("#s5-alloc", { scale: 0.95, duration: 0.08, yoyo: true, repeat: 1 }, 29.04);
+
+        // ---------- S6 split 30.56–38.74 ----------
+        shell("#s6-w", 30.56, 8.18);
+        tl.fromTo("#s6-head", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 30.65); // beat-locked: 30.56
+        tl.fromTo("#s6-inv", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 31.0);
+        tl.fromTo(".s6-line", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out", stagger: 0.14 }, 31.3);
+        tl.fromTo("#tile-a", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 32.0);
+        tl.fromTo("#s6-fa", { scaleX: 0 }, { scaleX: 0.6, duration: 0.9, ease: "power2.out" }, 32.19);
+        count(q("#s6-a"), 0, 386.78, 32.19, 1.1, usd);
+        tl.fromTo("#tile-b", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 33.65);
+        tl.fromTo("#s6-fb", { scaleX: 0 }, { scaleX: 0.07, duration: 0.6, ease: "power2.out" }, 33.84);
+        count(q("#s6-b"), 0, 45.12, 33.84, 0.8, usd);
+        tl.fromTo(".s6-chip", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.8)", stagger: 0.55 }, 35.47);
+
+        // ---------- S7 enrol 38.74–45.82 ----------
+        shell("#s7-w", 38.74, 7.08);
+        tl.fromTo("#s7-chap", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 38.8); // beat-locked: 38.74
+        tl.fromTo("#s7-form", { opacity: 0, y: 70 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 39.0);
+        tl.fromTo("#opt-ring", { opacity: 0, scale: 1.05 }, { opacity: 1, scale: 1, duration: 0.35, ease: "power3.out" }, 39.6);
+        const nm = "Gurung terrace, Kaski", nameEl = q("#s7-name"), typ = { n: 0 };
+        tl.fromTo(typ, { n: 0 }, { n: nm.length, duration: 1.3, ease: "none", onUpdate: () => (nameEl.textContent = nm.slice(0, Math.round(typ.n))) }, 39.95);
+        tl.fromTo("#s7-caret", { opacity: 1 }, { opacity: 0, duration: 0.25, repeat: 9, yoyo: true, ease: "steps(1)" }, 39.6);
+        tl.fromTo("#s7-area", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 41.5);
+        tl.fromTo("#s7-sp", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 41.9);
+        tl.fromTo("#s7-est", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 39.3);
+        count(q("#s7-npr"), 0, 13054, 41.9, 1.4, npr);
+        tl.fromTo("#s7-sat", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 39.5);
+        tl.fromTo("#s7-poly", { opacity: 0.3 }, { opacity: 1, duration: 0.6 }, 42.5);
+        tl.fromTo("#s7-ver", { opacity: 0, scale: 0.6, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "back.out(2)" }, 43.65);
+
+        // ---------- S8 paid 45.82–51.83 ----------
+        shell("#s8-w", 45.82, 6.01);
+        tl.fromTo("#s8-map", { opacity: 0, x: -70 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 45.9); // beat-locked: 45.82
+        tl.fromTo("#s8-note", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.45, ease: "back.out(1.6)" }, 45.98);
+        tl.fromTo(".tree", { opacity: 0, scale: 0.2, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.5)", stagger: 0.09 }, 46.37);
+        tl.fromTo("#s8-pay", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 47.2);
+        count(q("#s8-npr"), 0, 13054, 47.4, 1.1, npr);
+        tl.fromTo("#s8-paid", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.4)" }, 48.55); // beat-locked: 48.55
+        tl.fromTo("#s8-line", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 49.1);
+
+        // ---------- S9 loop + lockup 51.83–60 ----------
+        tl.fromTo("#s9-w", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 51.83);
+        tl.fromTo("#node-a", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 51.9); // beat-locked: 51.83
+        tl.fromTo("#node-b", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 52.38);
+        tl.fromTo("#node-c", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 52.93);
+        tl.fromTo("#arr-1 .shaft", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power2.out" }, 53.3);
+        tl.fromTo("#arr-1 .lab", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.35 }, 53.4);
+        tl.fromTo("#arr-2 .shaft", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power2.out" }, 53.84);
+        tl.fromTo("#arr-2 .lab", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.35 }, 53.94);
+        tl.fromTo("#ret-path", { strokeDashoffset: 0, opacity: 0 }, { strokeDashoffset: -56, opacity: 1, duration: 0.6, ease: "power1.out" }, 54.4);
+        tl.fromTo("#ret-head", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 54.75);
+        tl.fromTo("#ret-lab", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 54.55);
+        tl.to("#s9-loop", { opacity: 0, scale: 0.94, duration: 0.45, ease: "power2.in", transformOrigin: "50% 45%" }, 57.4 - 1.35);
+        tl.fromTo("#lock-logo", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.7)" }, 56.19); // beat-locked: 56.19
+        tl.fromTo("#lock-tag", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 56.55);
+        tl.fromTo("#lock-cta", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 56.85);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

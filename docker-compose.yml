@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      args:
+        # Bake the demo platform into the image; the first start copies it into the data volume.
+        RUKH_DEMO_DATA: ${RUKH_DEMO_DATA:-true}
+    ports:
+      - "8000:8000"
+    environment:
+      # Created on start if missing (the demo database already has it).
+      RUKH_ADMIN_EMAIL: ${RUKH_ADMIN_EMAIL:-superadmin@rukh.com}
+      RUKH_ADMIN_PASSWORD: ${RUKH_ADMIN_PASSWORD:-rukh@123}
+      RUKH_CORS_ORIGINS: '["http://localhost:3000", "http://localhost:3100"]'
+      # true: replace the database in the volume with a fresh demo copy (the old one is kept as a .bak)
+      RUKH_DEMO_RESET: ${RUKH_DEMO_RESET:-false}
+    volumes:
+      - rukh-data:/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  rukh-data:

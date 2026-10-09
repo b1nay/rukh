@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/* Light-only theme: white surfaces, shades of green. */
+:root {
+  --background: #ffffff;
+  --surface: #ffffff;
+  --surface-muted: #f6faf7;
+  --foreground: #101814;
+  --muted: #5f6b65;
+  --border: #e8efea;
+  --brand: #16a34a;
+  --brand-strong: #15803d;
+  --brand-soft: #ecfdf3;
+  --brand-tint: #d9f5e3;
+  --mint: #bbf7d0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-tint: var(--brand-tint);
+  --color-mint: var(--mint);
+  --font-sans: var(--font-poppins);
+  --font-display: var(--font-poppins);
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-poppins), system-ui, sans-serif;
+}
+
+/* Soft tinted card, as used for feature and pricing cards. */
+.card-tint {
+  background:
+    radial-gradient(120% 80% at 0% 0%, #e3f7ea 0%, transparent 55%),
+    radial-gradient(120% 80% at 100% 0%, #f0fbe4 0%, transparent 55%),
+    linear-gradient(180deg, #fbfefc 0%, #ffffff 100%);
+}
+
+::selection {
+  background: var(--brand-tint);
+}
