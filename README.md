@@ -13,19 +13,12 @@ docker compose up --build        # frontend http://localhost:3000, API http://lo
 ```
 
 The image is built with a ready-made demo platform. On first start it is copied into the `rukh-data` volume.
-Log in with any of these (password `rukh@123`):
-
-| Role | Login | Who |
-| --- | --- | --- |
-| Superadmin | `superadmin@rukh.com` | Rukh Admin |
-| Climate Partner | `company@rukh.com` | Everest Horizon Treks |
-| Land Partner | `landowner@rukh.com` | Sita Gurung, Kaski |
+Log in with the accounts under [Demo accounts](#demo-accounts).
 
 The demo has 16 Land Partners with 23 GPS-mapped fields across Nepal and 4 Climate Partners with 14 trips.
 It also has requests in every state (pending, allocated, partly allocated, declined), invoices (paid, open,
 overdue), landowner payments (paid and waiting), message threads and notifications. Dates are relative to the
-build day. The supporting accounts use the same password and log in by phone, `9800000002` to `9800000016`,
-or by the emails in `backend/app/demo.py`.
+build day.
 
 - The volume keeps your data across rebuilds. The demo is only copied when the volume has no database yet.
 - To swap an existing database for a fresh demo copy, run `RUKH_DEMO_RESET=true docker compose up --build`.
@@ -33,6 +26,61 @@ or by the emails in `backend/app/demo.py`.
 - To build an empty platform instead, run `RUKH_DEMO_DATA=false docker compose up --build`. The superadmin is
   then created from `RUKH_ADMIN_EMAIL` and `RUKH_ADMIN_PASSWORD` (default `superadmin@rukh.com` / `rukh@123`).
 - `docker compose down -v` deletes the volume, which wipes every account.
+
+## Demo accounts
+
+Every demo account uses the password **`rukh@123`**. Log in at http://localhost:3000/login with the email or phone number.
+
+**Start with these three.** Between them they cover every screen:
+
+| Role | Login | Password | Who | What to try |
+| --- | --- | --- | --- | --- |
+| Superadmin | `superadmin@rukh.com` | `rukh@123` | Rukh Admin | Requests, field map, invoices, **Pay** (set the treasury wallet here) |
+| Climate Partner | `company@rukh.com` | `rukh@123` | Everest Horizon Treks (Aarati Sharma) | Trips, CO₂ per traveler, **Request trees**, **Billing → Pay now** with a Solana wallet |
+| Land Partner | `landowner@rukh.com` or `9800000001` | `rukh@123` | Sita Gurung, Kaski | My fields, earnings, **Payments** (SOL received, payout wallet) |
+
+<details>
+<summary>All other demo accounts (same password)</summary>
+
+**Climate Partners**
+
+| Login | Organization |
+| --- | --- |
+| `events@himalayanclimateforum.example.com` | Himalayan Climate Forum (event organizer) |
+| `fieldtrips@geos.example.ac.uk` | University of Edinburgh · GeoSciences |
+| `nepal@greenearth.example.org` | Green Earth Nepal (NGO) |
+
+**Land Partners** (log in by phone)
+
+| Phone | Name |
+| --- | --- |
+| `9800000002` | Bhumlichowk Community Forest (Hari Thapa) |
+| `9800000003` | Ilam Tea Growers Cooperative (Maya Rai) |
+| `9800000004` | Ram Bahadur Thapa |
+| `9800000005` | Laxmi Tamang |
+| `9800000006` | Sauraha Buffer Zone Community Forest (Bishnu Chaudhary) |
+| `9800000007` | Kalinchowk Community Forest (Pemba Sherpa) |
+| `9800000008` | Sunita Shrestha |
+| `9800000009` | Tansen Agroforestry Cooperative (Gopal Pandey) |
+| `9800000010` | Kamala Oli |
+| `9800000011` | Mohana Community Forest (Dhan Bahadur Rana) |
+| `9800000012` | Tek Bahadur KC |
+| `9800000013` | Anita Lama |
+| `9800000014` | Hile Community Forest (Nar Bahadur Limbu) |
+| `9800000015` | Ang Dorje Sherpa |
+| `9800000016` | Bhim Pun |
+
+</details>
+
+**Notes**
+- The demo accounts exist only when the demo data is loaded. Docker loads it by default. When running locally,
+  start the backend with `RUKH_SEED_DEMO_DATA=true` (see [Demo data](#demo-data)).
+- Demo landowners have generated Solana addresses that nobody holds keys for. To receive real devnet SOL in a
+  demo, log in as `landowner@rukh.com` and set your own wallet under **Payments** before the superadmin pays out.
+- Before a Climate Partner can pay an invoice, log in as the superadmin, open **Pay**, connect a wallet and click
+  **Use connected wallet** to set the treasury. Fund wallets with test SOL at https://faucet.solana.com.
+- New sign-ups need a one-time code. None is actually sent; the code is always `1234`.
+- Change `RUKH_ADMIN_PASSWORD` and don't load demo data anywhere outside a demo.
 
 ## Run locally
 
