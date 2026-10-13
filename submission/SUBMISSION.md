@@ -8,7 +8,7 @@ Team: **Binayak Karki, Aalok Sapkota, Abinash Oli** · Repo: **https://github.co
 |---|---|---|---|
 | 1 | Project name | ✅ Ready | Rukh |
 | 2 | Project description | ✅ Ready | [below](#project-description) |
-| 3 | GitHub repo | ⚠️ Repo is public but empty until the code is pushed | https://github.com/b1nay/rukh |
+| 3 | GitHub repo | ✅ Public, code pushed | https://github.com/b1nay/rukh |
 | 4 | Link to your submission | ⚠️ No deployed app yet; use the repo link, or deploy and paste the URL | [below](#link-to-your-submission) |
 | 5 | Pitch deck (10 slides) | ✅ Ready · ⚠️ private until shared | https://claude.ai/artifact/KVNa2zhPVjxZJBf86HNFNp (Share → public link, or Export → PDF/PPTX) |
 | 6 | Demo video (60 s, 1080p) | ✅ Ready · ⚠️ upload to YouTube or Loom | `brag-output/brag.mp4` · poster `brag-output/brag.jpg` |
@@ -17,7 +17,7 @@ Team: **Binayak Karki, Aalok Sapkota, Abinash Oli** · Repo: **https://github.co
 | 9 | Project detail answers (7) | ✅ Ready | [below](#project-details) |
 | 10 | Share caption | ✅ Ready | `brag-output/share-copy.txt` |
 
-Once the repo is pushed, the files are at:
+Public links to the files:
 - Logo: https://github.com/b1nay/rukh/blob/main/submission/logo.png
 - Banner: https://github.com/b1nay/rukh/blob/main/submission/banner.png
 - Demo video file: https://github.com/b1nay/rukh/blob/main/brag-output/brag.mp4
