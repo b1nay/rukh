@@ -1,2 +1,2 @@
-Rukh is live. 12 trekkers fly London → Kathmandu: Rukh measures their 18.96 t of CO₂, plants 48 Utis trees on spare farmland in Nepal, and pays the landowners 60% of every tonne by eSewa.
-One trip, three dashboards: Climate Partner, Rukh, Land Partner.
+Rukh is live on Solana. 12 trekkers fly London → Kathmandu: Rukh measures their 18.96 t of CO₂, the operator pays 3.85 SOL from a Solana wallet, and 48 Utis trees go on farmers' land in Kaski, with each landowner paid in SOL to their own wallet.
+Real trees in Nepal. Every payment on Solana Explorer.

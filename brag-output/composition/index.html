@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
-    <title>Rukh — One trip, three sides</title>
+    <title>Rukh — Real trees in Nepal, every payment on Solana</title>
     <script src="assets/vendor/gsap.min.js"></script>
     <script src="assets/audio-data.js"></script>
     <style>
@@ -23,6 +23,8 @@
         --brand-soft: #ecfdf3;
         --brand-tint: #d9f5e3;
         --mint: #bbf7d0;
+        --sol: #7b2fe0;
+        --sol-dark: #1b1035;
         --pulse: 0;
       }
       * { box-sizing: border-box; }
@@ -164,8 +166,18 @@
       .total span { font-size: 30px; font-weight: 600; }
       .total b { font-size: 60px; font-weight: 700; letter-spacing: -1px; }
       .tile { left: 840px; width: 960px; padding: 36px 48px; }
-      #tile-a { top: 380px; height: 270px; }
-      #tile-b { top: 680px; height: 220px; }
+      #tile-a { top: 380px; height: 340px; background: var(--sol-dark); border-color: var(--sol-dark); color: #f2f4f8; display: flex; flex-direction: column; gap: 6px; }
+      #tile-b { top: 750px; height: 150px; display: flex; align-items: center; justify-content: space-between; }
+      .wh { display: flex; align-items: center; gap: 16px; height: 56px; }
+      .wh .who { flex: 1; }
+      .wh .net { font-size: 22px; font-weight: 600; color: #c9a6ff; border: 2px solid #3b2a63; border-radius: 999px; padding: 4px 16px; }
+      .wrow { display: flex; justify-content: space-between; align-items: center; height: 50px; font-size: 27px; border-bottom: 2px solid #2e2150; }
+      .wrow span { color: #b7aed0; }
+      .wrow b { font-weight: 600; }
+      #s6-approve { align-self: flex-end; width: 240px; height: 66px; margin-top: 14px; background: #9945ff; font-size: 28px; }
+      .conf-t { font-size: 34px; font-weight: 600; display: flex; align-items: center; gap: 14px; }
+      .conf-t .ok { width: 48px; height: 48px; border-radius: 50%; background: var(--brand-strong); display: flex; align-items: center; justify-content: center; }
+      .conf-s { font-size: 26px; color: var(--sol); font-weight: 600; margin-top: 6px; white-space: nowrap; }
       .tile .row { display: flex; justify-content: space-between; align-items: flex-end; }
       .tile .amt { font-size: 92px; font-weight: 700; line-height: 1; letter-spacing: -2px; color: var(--brand-strong); }
       .tile .who { font-size: 34px; font-weight: 600; }
@@ -189,7 +201,7 @@
       .two { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
       #s7-caret { display: inline-block; width: 3px; height: 38px; background: var(--brand-strong); margin-left: 4px; }
       #s7-est { left: 1180px; top: 240px; width: 620px; height: 460px; padding: 44px 48px; display: flex; flex-direction: column; gap: 10px; }
-      #s7-est .big { font-size: 88px; white-space: nowrap; font-weight: 700; color: var(--brand-strong); letter-spacing: -2px; line-height: 1.05; }
+      #s7-est .big { font-size: 80px; white-space: nowrap; font-weight: 700; color: var(--brand-strong); letter-spacing: -2px; line-height: 1.05; }
       #s7-est .kv { font-size: 26px; }
       #s7-sat { left: 1180px; top: 730px; width: 620px; height: 230px; padding: 22px; }
       #s7-sat svg { display: block; width: 100%; height: 100%; border-radius: 20px; }
@@ -203,8 +215,9 @@
       #s8-note .bell { width: 72px; height: 72px; border-radius: 50%; background: var(--brand-soft); display: flex; align-items: center; justify-content: center; flex: none; }
       #s8-note .nt { font-size: 28px; font-weight: 600; line-height: 1.25; }
       #s8-note .ns { font-size: 22px; color: var(--muted); }
-      #s8-pay { left: 1110px; top: 420px; width: 690px; height: 330px; padding: 44px 48px; }
-      #s8-pay .big { font-size: 110px; font-weight: 700; letter-spacing: -3px; line-height: 1.1; margin-top: 8px; }
+      #s8-pay { left: 1110px; top: 420px; width: 690px; height: 350px; padding: 44px 48px; }
+      #s8-pay .big { font-size: 88px; font-weight: 700; letter-spacing: -2px; line-height: 1.1; margin-top: 8px; }
+      #s8-tx { font-size: 24px; font-weight: 600; color: var(--sol); margin-top: 6px; }
       #s8-pay .row { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; }
       .chip-plain { border-radius: 12px; background: var(--muted-bg); padding: 10px 22px; font-size: 26px; font-weight: 600; color: var(--muted); }
       #s8-paid { font-size: 28px; padding: 10px 28px; }
@@ -233,6 +246,8 @@
       #lock-logo span { font-size: 170px; font-weight: 700; letter-spacing: -4px; line-height: 1; }
       #lock-tag { font-size: 64px; font-weight: 600; letter-spacing: -1px; }
       #lock-cta { width: 380px; height: 100px; font-size: 34px; margin-top: 20px; }
+      #lock-sol { font-size: 30px; padding: 10px 26px; background: #f4edff; border-color: #e4d4ff; color: var(--sol); }
+      .solc { color: var(--sol); }
     </style>
   </head>
   <body>
@@ -297,12 +312,12 @@
             <span>Rukh</span>
           </div>
           <h2 id="s2-tag" class="abs">Offset Travel with Real Trees in <span class="green">Nepal</span></h2>
-          <p id="s2-sub" class="abs">One platform. Three sides.</p>
+          <p id="s2-sub" class="abs">One platform. Three sides. Every payment on Solana.</p>
           <div id="role-1" class="abs card role">
             <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#15803d" stroke-width="1.8"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.8 3.8 5.8 3.8 9S14.6 18.2 12 21c-2.6-2.8-3.8-5.8-3.8-9S9.4 5.8 12 3Z" /></g></svg></div>
             <p class="rn">Climate Partner</p>
             <p class="rt">I want to offset travel emissions</p>
-            <span class="pill">Pays per tonne</span>
+            <span class="pill">Pays per tonne in SOL</span>
           </div>
           <div id="role-2" class="abs card role">
             <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#15803d" d="M12 2c3.6 2.4 5.6 5.6 5.6 9a5.6 5.6 0 0 1-4.6 5.5V22h-2v-5.5A5.6 5.6 0 0 1 6.4 11C6.4 7.6 8.4 4.4 12 2Z" /></svg></div>
@@ -314,7 +329,7 @@
             <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#15803d"><circle cx="12" cy="8.5" r="6" /><rect x="11" y="13" width="2" height="9" rx="1" /></g></svg></div>
             <p class="rn">Land Partner</p>
             <p class="rt">I own trees or land in Nepal</p>
-            <span class="pill">Earns 60% of every tonne</span>
+            <span class="pill">Earns 60%, paid in SOL</span>
           </div>
         </div>
       </section>
@@ -366,13 +381,13 @@
           </div>
           <div id="imp-protect" class="abs card impact">
             <p class="nm">Protect</p>
-            <p class="pr">$18 <small>/ tonne</small></p>
+            <p class="pr">0.1 SOL <small>/ tonne</small></p>
             <p class="tg">Pay for this year's measured growth of standing trees</p>
             <p class="cl">Claim: “contribution to Nepali forests”</p>
           </div>
           <div id="imp-plant" class="abs card impact">
             <p class="nm">Plant</p>
-            <p class="pr">$34 <small>/ tonne</small></p>
+            <p class="pr">0.19 SOL <small>/ tonne</small></p>
             <p class="tg">New trees planted for you, absorbing CO₂ over 30 years</p>
             <p class="cl" id="imp-claim">Claim: “funded verified carbon removal”</p>
           </div>
@@ -380,8 +395,8 @@
           <span id="imp-sel" class="abs pill">Selected</span>
           <div id="s4-sum" class="abs card">
             <div class="eqbox">
-              <p class="eq" id="s4-eq" data-layout-allow-overlap>18.96 t × $34 = <b>$644.64</b> <span class="muted">+ platform fee 7% $45.12</span></p>
-              <p class="eq" id="s4-sent" data-layout-allow-overlap><span class="tk"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg></span>Request sent · bill <b>$689.76</b> <span class="muted">· Rukh notified</span></p>
+              <p class="eq" id="s4-eq" data-layout-allow-overlap>18.96 t × 0.19 SOL = <b>3.6024 SOL</b> <span class="muted">+ 7% fee 0.2522 SOL</span></p>
+              <p class="eq" id="s4-sent" data-layout-allow-overlap><span class="tk"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg></span>Request sent · bill <b>3.8546 SOL</b> <span class="muted">· Rukh notified</span></p>
             </div>
             <div id="s4-btn" class="btn">Request trees</div>
           </div>
@@ -402,7 +417,7 @@
             <p class="muted" style="font-size: 28px">Annapurna Base Camp</p>
             <div class="kv"><span class="muted">CO₂ to cover</span><b>18.96 t · Plant</b></div>
             <div class="kv"><span class="muted">New trees needed</span><b>48 Utis</b></div>
-            <div class="kv"><span class="muted">Client bill</span><b>$689.76</b></div>
+            <div class="kv"><span class="muted">Client bill</span><b>3.8546 SOL</b></div>
           </div>
           <div id="s5-alloc" class="abs btn">Allocate &amp; bill client →</div>
           <div id="s5-fields" class="abs card">
@@ -422,30 +437,37 @@
         <div class="wrap" id="s6-w">
           <div class="chap">
             <div class="num">02</div>
-            <div><p class="name">Rukh</p><p class="sub">Invoice issued · due in 14 days</p></div>
+            <div><p class="name">Rukh</p><p class="sub">Invoice issued · paid from a Solana wallet</p></div>
           </div>
-          <h2 id="s6-head" class="abs">Rukh earns when the trees do.</h2>
+          <h2 id="s6-head" class="abs">Paid in SOL. Proven on <span class="solc">Solana</span>.</h2>
           <div id="s6-inv" class="abs card">
-            <p class="label">Invoice INV-1042 · Himalaya Treks</p>
+            <p class="label">Invoice RUKH-2026-0005 · Himalaya Treks</p>
             <div style="margin-top: 22px">
-              <div class="kv s6-line"><span>Trees · 18.96 t × $34</span><b>$644.64</b></div>
-              <div class="kv s6-line"><span>Platform fee (7%)</span><b>$45.12</b></div>
+              <div class="kv s6-line"><span>Trees · 18.96 t × 0.19 SOL</span><b>3.6024 SOL</b></div>
+              <div class="kv s6-line"><span>Platform fee (7%)</span><b>0.2522 SOL</b></div>
               <div class="kv s6-line"><span class="muted">Plan</span><b>Operator</b></div>
             </div>
-            <div class="total s6-line"><span>Total</span><b>$689.76</b></div>
+            <div class="total s6-line"><span>Total</span><b>3.8546 SOL</b></div>
           </div>
           <div id="tile-a" class="abs card tile">
-            <div class="row"><div><p class="who">To Land Partners</p><p class="why">60% of every tonne absorbed</p></div><p class="amt" id="s6-a">$0.00</p></div>
-            <div class="track"><span class="fill" id="s6-fa"></span></div>
+            <div class="wh"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="#14F195" d="M6.5 3H23l-5.5 5H1z" /><path fill="#5FA8F2" d="M17.5 9.5H1l5.5 5H23z" /><path fill="#9945FF" d="M6.5 16H23l-5.5 5H1z" /></svg><p class="who">Approve transaction</p><span class="net">Solana devnet</span></div>
+            <div class="wrow"><span>Send</span><b id="s6-a">0 SOL</b></div>
+            <div class="wrow"><span>To</span><b>Rukh treasury · 7xKX…n4Qp</b></div>
+            <div class="wrow"><span>Memo</span><b>Rukh invoice RUKH-2026-0005</b></div>
+            <div id="s6-approve" class="btn">Approve</div>
           </div>
           <div id="tile-b" class="abs card tile">
-            <div class="row"><div><p class="who">To Rukh</p><p class="why">7% platform fee on the Operator plan</p></div><p class="amt" id="s6-b">$0.00</p></div>
-            <div class="track"><span class="fill" id="s6-fb"></span></div>
+            <div>
+              <p class="conf-t"><span class="ok"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg></span>Confirmed on Solana</p>
+              <p class="conf-s">Verified by Rukh · tx 5Kq8…9xFp on Explorer ↗</p>
+            </div>
+            <span class="pill" style="white-space: nowrap">Invoice paid</span>
           </div>
           <div id="s6-chips" class="abs">
-            <span class="pill s6-chip">15% buffer held back</span>
-            <span class="pill s6-chip">No tree is sold twice.</span>
+            <span class="pill s6-chip">60% → Land Partners · 2.1614 SOL</span>
+            <span class="pill s6-chip">7% → Rukh · 0.2522 SOL</span>
           </div>
+          <div class="cursor" id="s6-cur"><svg viewBox="0 0 24 29" aria-hidden="true"><path d="M2 2v22l6-5.5 4 9 3.6-1.6-4-8.8H20Z" fill="#101814" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round" /></svg></div>
         </div>
       </section>
 
@@ -470,9 +492,9 @@
           </div>
           <div id="s7-est" class="abs card">
             <p class="label">Estimated earnings</p>
-            <p class="big" id="s7-npr">NPR 0</p>
+            <p class="big" id="s7-npr">0 SOL</p>
             <div class="kv"><span class="muted">Planting slots</span><b>12 trees</b></div>
-            <div class="kv" style="border-bottom: 0"><span class="muted">Your share</span><b>60% of every tonne</b></div>
+            <div class="kv" style="border-bottom: 0"><span class="muted">Paid to</span><b>your Solana wallet</b></div>
           </div>
           <div id="s7-sat" class="abs card">
             <svg viewBox="0 0 280 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true" data-layout-allow-overflow>
@@ -516,10 +538,11 @@
           </div>
           <div id="s8-pay" class="abs card">
             <p class="label">Payout · Sita Gurung</p>
-            <p class="big" id="s8-npr">NPR 13,054</p>
-            <div class="row"><span class="chip-plain">eSewa</span><span class="pill" id="s8-paid">Paid</span></div>
+            <p class="big" id="s8-npr">0.5404 SOL</p>
+            <p id="s8-tx">To HFfY…mTAM · 1 transaction, 4 landowners</p>
+            <div class="row"><span class="chip-plain">Solana</span><span class="pill" id="s8-paid">Paid</span></div>
           </div>
-          <p id="s8-line" class="abs">Get paid to keep them <span class="green">growing.</span></p>
+          <p id="s8-line" class="abs">Paid in SOL, straight to her <span class="green">wallet.</span></p>
         </div>
       </section>
 
@@ -535,24 +558,25 @@
               <div class="disc card"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#15803d" stroke-width="1.8"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.8 3.8 5.8 3.8 9S14.6 18.2 12 21c-2.6-2.8-3.8-5.8-3.8-9S9.4 5.8 12 3Z" /></g></svg></div>
               <p class="nn">Climate Partner</p>
             </div>
-            <div class="arrow" id="arr-1"><p class="lab">pays $689.76</p><span class="shaft"></span></div>
+            <div class="arrow" id="arr-1"><p class="lab">pays 3.8546 SOL</p><span class="shaft"></span></div>
             <div class="node" id="node-b">
               <div class="disc"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#ffffff" d="M12 2c3.6 2.4 5.6 5.6 5.6 9a5.6 5.6 0 0 1-4.6 5.5V22h-2v-5.5A5.6 5.6 0 0 1 6.4 11C6.4 7.6 8.4 4.4 12 2Z" /></svg></div>
               <p class="nn">Rukh</p>
             </div>
-            <div class="arrow" id="arr-2"><p class="lab">pays NPR 52,216</p><span class="shaft"></span></div>
+            <div class="arrow" id="arr-2"><p class="lab">pays 2.1614 SOL</p><span class="shaft"></span></div>
             <div class="node" id="node-c">
               <div class="disc card"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#15803d"><circle cx="12" cy="8.5" r="6" /><rect x="11" y="13" width="2" height="9" rx="1" /></g></svg></div>
               <p class="nn">Land Partner</p>
             </div>
-            <p id="ret-lab" class="abs">48 real trees, shown on a map, not a certificate number</p>
+            <p id="ret-lab" class="abs">48 real trees on a map · every payment on Solana Explorer</p>
           </div>
           <div id="s9-lock">
             <div id="lock-logo">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#16a34a" d="M12 2c3.6 2.4 5.6 5.6 5.6 9a5.6 5.6 0 0 1-4.6 5.5V22h-2v-5.5A5.6 5.6 0 0 1 6.4 11C6.4 7.6 8.4 4.4 12 2Z" /></svg>
               <span>Rukh</span>
             </div>
-            <p id="lock-tag">Offset Travel with Real Trees in <span class="green">Nepal</span></p>
+            <p id="lock-tag">Real trees in <span class="green">Nepal</span>. Every payment on <span class="solc">Solana</span>.</p>
+            <span id="lock-sol" class="pill"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="#14F195" d="M6.5 3H23l-5.5 5H1z" /><path fill="#5FA8F2" d="M17.5 9.5H1l5.5 5H23z" /><path fill="#9945FF" d="M6.5 16H23l-5.5 5H1z" /></svg>Built on Solana · paid in SOL</span>
             <div id="lock-cta" class="btn">Start for free →</div>
           </div>
         </div>
@@ -581,7 +605,7 @@
       <audio id="sfx-17" src="assets/sfx/ui/mouseclick1.ogg" data-start="29.10" data-duration="0.05" data-track-index="27" data-volume="0.8"></audio>
       <audio id="sfx-18" src="assets/sfx/casino/card-slide-1.ogg" data-start="30.60" data-duration="0.6" data-track-index="28" data-volume="0.55"></audio>
       <audio id="sfx-19" src="assets/sfx/impact/impactSoft_medium_001.ogg" data-start="32.19" data-duration="0.18" data-track-index="29" data-volume="0.7"></audio>
-      <audio id="sfx-20" src="assets/sfx/interface/drop_001.ogg" data-start="33.84" data-duration="0.1" data-track-index="30" data-volume="0.6"></audio>
+      <audio id="sfx-20" src="assets/sfx/ui/mouseclick1.ogg" data-start="33.70" data-duration="0.05" data-track-index="30" data-volume="0.8"></audio>
       <audio id="sfx-21" src="assets/sfx/interface/drop_002.ogg" data-start="35.47" data-duration="0.19" data-track-index="31" data-volume="0.55"></audio>
       <audio id="sfx-22" src="assets/sfx/impact/impactSoft_medium_004.ogg" data-start="38.77" data-duration="0.14" data-track-index="32" data-volume="0.75"></audio>
       <audio id="sfx-23" src="assets/sfx/keyboard/keypress-001.wav" data-start="40.00" data-duration="0.24" data-track-index="33" data-volume="0.45"></audio>
@@ -610,8 +634,7 @@
           tl.fromTo(o, { v: from }, { v: to, duration: dur, ease: "power2.out", onUpdate: () => (el.textContent = fmt(o.v)) }, at);
         }
         const t2 = (v) => v.toFixed(2) + " t";
-        const usd = (v) => "$" + v.toFixed(2);
-        const npr = (v) => "NPR " + Math.round(v).toLocaleString("en-US");
+        const sol = (v) => v.toFixed(4) + " SOL";
 
         // Scene shells: slide in, fade out on cut.
         function shell(id, start, dur) {
@@ -728,11 +751,14 @@
         tl.fromTo("#s6-inv", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 31.0);
         tl.fromTo(".s6-line", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out", stagger: 0.14 }, 31.3);
         tl.fromTo("#tile-a", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 32.0);
-        tl.fromTo("#s6-fa", { scaleX: 0 }, { scaleX: 0.6, duration: 0.9, ease: "power2.out" }, 32.19);
-        count(q("#s6-a"), 0, 386.78, 32.19, 1.1, usd);
-        tl.fromTo("#tile-b", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 33.65);
-        tl.fromTo("#s6-fb", { scaleX: 0 }, { scaleX: 0.07, duration: 0.6, ease: "power2.out" }, 33.84);
-        count(q("#s6-b"), 0, 45.12, 33.84, 0.8, usd);
+        count(q("#s6-a"), 0, 3.8546, 32.19, 0.9, sol);
+        // cursor approves in the wallet (~1610, 640), then the chain confirms
+        tl.fromTo("#s6-cur", { x: 1900, y: 1000, opacity: 0 }, { x: 1610, y: 650, opacity: 1, duration: 0.8, ease: "power3.inOut" }, 32.8);
+        click("#s6-cur", 33.7);
+        tl.to("#s6-approve", { scale: 0.95, duration: 0.08, yoyo: true, repeat: 1 }, 33.64);
+        tl.to("#s6-approve", { backgroundColor: "#15803d", duration: 0.25 }, 33.78);
+        tl.to("#s6-cur", { opacity: 0, duration: 0.3 }, 34.3);
+        tl.fromTo("#tile-b", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "back.out(1.6)" }, 34.05);
         tl.fromTo(".s6-chip", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.8)", stagger: 0.55 }, 35.47);
 
         // ---------- S7 enrol 38.74–45.82 ----------
@@ -746,7 +772,7 @@
         tl.fromTo("#s7-area", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 41.5);
         tl.fromTo("#s7-sp", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 41.9);
         tl.fromTo("#s7-est", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 39.3);
-        count(q("#s7-npr"), 0, 13054, 41.9, 1.4, npr);
+        count(q("#s7-npr"), 0, 0.5404, 41.9, 1.4, sol);
         tl.fromTo("#s7-sat", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 39.5);
         tl.fromTo("#s7-poly", { opacity: 0.3 }, { opacity: 1, duration: 0.6 }, 42.5);
         tl.fromTo("#s7-ver", { opacity: 0, scale: 0.6, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "back.out(2)" }, 43.65);
@@ -757,7 +783,7 @@
         tl.fromTo("#s8-note", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.45, ease: "back.out(1.6)" }, 45.98);
         tl.fromTo(".tree", { opacity: 0, scale: 0.2, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.5)", stagger: 0.09 }, 46.37);
         tl.fromTo("#s8-pay", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 47.2);
-        count(q("#s8-npr"), 0, 13054, 47.4, 1.1, npr);
+        count(q("#s8-npr"), 0, 0.5404, 47.4, 1.1, sol);
         tl.fromTo("#s8-paid", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.4)" }, 48.55); // beat-locked: 48.55
         tl.fromTo("#s8-line", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 49.1);
 
@@ -776,7 +802,8 @@
         tl.to("#s9-loop", { opacity: 0, scale: 0.94, duration: 0.45, ease: "power2.in", transformOrigin: "50% 45%" }, 57.4 - 1.35);
         tl.fromTo("#lock-logo", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.7)" }, 56.19); // beat-locked: 56.19
         tl.fromTo("#lock-tag", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 56.55);
-        tl.fromTo("#lock-cta", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 56.85);
+        tl.fromTo("#lock-sol", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, 56.85);
+        tl.fromTo("#lock-cta", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 57.2);
 
         window.__timelines["main"] = tl;
       })();

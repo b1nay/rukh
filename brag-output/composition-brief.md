@@ -1,4 +1,4 @@
-# Hyperframes Composition Brief: Rukh
+# Hyperframes Composition Brief: Rukh (Solana edition)
 
 ## Objective
 Create a 60s launch-style brag video for Rukh that shows all three sides of the marketplace: Climate Partner, Rukh, and Land Partner.
@@ -13,24 +13,26 @@ Create a 60s launch-style brag video for Rukh that shows all three sides of the 
 - Project root: `carbon-calculator/`
 - Primary files read: `frontend/src/app/page.tsx`, `frontend/src/app/globals.css`, `frontend/src/app/layout.tsx`, `frontend/src/lib/content.ts`, `frontend/src/components/dashboard/*` (admin, climate, land overviews, allocate, new field), `backend/app/catalog.py`, `README.md`
 - Product name: Rukh
-- Tagline: "Offset Travel with Real Trees in Nepal"
-- Key UI to recreate: hero "Trip allocation" card (route LHR · DOH · KTM, MiniMap, stat tiles), Protect/Plant impact cards, allocate screen with Auto-fill, "Payout · Sita Gurung" card
+- Tagline: "Real trees in Nepal. Every payment on Solana."
+- Key UI to recreate: hero "Trip allocation" card (route LHR · DOH · KTM, MiniMap, stat tiles), Protect/Plant impact cards, allocate screen with Auto-fill, "Payout · Sita Gurung" card (now in SOL), plus a Solana wallet "Approve transaction" card and an on-chain confirmation
 - Copy that must appear verbatim:
-  - Offset Travel with Real Trees in Nepal
+  - Real trees in Nepal. Every payment on Solana.
+  - Paid in SOL. Proven on Solana.
+  - Rukh invoice RUKH-2026-0005
   - I want to offset travel emissions / I own trees or land in Nepal
   - New trees planted for you, absorbing CO₂ over 30 years
   - Claim: "funded verified carbon removal"
   - Auto-fill uses the smallest fields first, so income reaches small farms.
   - Host new trees planted for Climate Partners
-  - Get paid to keep them growing.
-  - No tree is sold twice.
+  - Paid in SOL, straight to her wallet.
+  - Confirmed on Solana · Verified by Rukh
 
 ## Creative Direction
 - Tone preset: app-store
 - Creative direction: one tonne of CO₂, followed from a London booking to a Kaski hillside
-- Angle: one trip, three dashboards, with the same numbers carried through (12 travelers × 1.58 t = 18.96 t; Plant $34/t = $644.64 + 7% fee $45.12 = $689.76; 60% = $386.78 = NPR 52,216; 48 Utis trees)
+- Angle: one trip, three dashboards, with the same numbers carried through (12 travelers × 1.58 t = 18.96 t; Plant 0.19 SOL/t = 3.6024 SOL + 7% fee 0.2522 SOL = 3.8546 SOL, paid from a Solana wallet with memo "Rukh invoice RUKH-2026-0005"; 60% = 2.1614 SOL to landowners in one batched transaction, 0.5404 SOL to Sita for 12 of the 48 Utis trees)
 - Hook: "Every flight to Nepal leaves something behind." + route draw + CO₂ counter
-- Outro: three-node loop, then the Rukh lockup with "Start for free →"
+- Outro: three-node loop (pays 3.8546 SOL → pays 2.1614 SOL), then the Rukh lockup "Real trees in Nepal. Every payment on Solana." with a "Built on Solana · paid in SOL" pill and "Start for free →"
 - Avoid: generic SaaS language, abstract filler, "carbon free" claims, emoji glyphs (use inline SVG icons)
 
 ## Visual Identity

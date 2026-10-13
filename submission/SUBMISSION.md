@@ -13,7 +13,7 @@ Rukh turns travel emissions into specific, mapped trees in Nepal. Tour operators
 
 **GitHub link:** https://github.com/kachhuwagroup/climate. TODO: the repo is currently private (it returns 404 to visitors). Make it public or give the judges access.
 
-**Pitch deck or Loom/video:** TODO
+**Pitch deck or Loom/video:** pitch deck https://claude.ai/artifact/KVNa2zhPVjxZJBf86HNFNp (TODO: share it publicly from its Share menu, or export it to PDF/PPTX). Demo video: `brag-output/brag.mp4` (TODO: upload it to YouTube or Loom and paste the link).
 
 ## Project details
 
@@ -65,9 +65,9 @@ TODO: confirm. Suggested: Nepal (Kathmandu).
 
 **GitHub link:** see above. The repo must be public, or the judges invited, before submitting.
 
-**Demo video:** TODO. `brag-output/brag.mp4` is from before the switch to Solana and still shows eSewa payouts, so don't submit it.
+**Demo video:** `brag-output/brag.mp4`, 60 s, 1920×1080, re-cut for Solana. It shows SOL pricing, a wallet approval with the invoice memo, on-chain confirmation, and landowner payouts in SOL. The poster is `brag-output/brag.jpg` and the caption is in `brag-output/share-copy.txt`. Upload it and make it visible on the public project page.
 
-**Pitch video:** TODO
+**Pitch video:** TODO. Record a 2–3 minute Loom walking through the pitch deck and the live demo (script below).
 
 ## Suggested demo script (about 2 minutes)
 
