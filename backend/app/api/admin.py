@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import func, select
 
+from app.catalog import fmt_sol, sol
 from app.api.climate import _detail
 from app.api.requests import request_out
 from app.deps import DB, Admin
@@ -25,16 +26,16 @@ router = APIRouter(prefix="/admin", tags=["superadmin"])
 
 class AdminSummary(BaseModel):
     pending_requests: int
-    pending_usd: float
+    pending_sol: float
     climate_partners: int
     land_partners: int
     fields: int
     protect_available_t: float
     plant_available_trees: int
     allocated_t: float
-    billed_usd: float
-    outstanding_usd: float
-    fees_usd: float
+    billed_sol: float
+    outstanding_sol: float
+    fees_sol: float
     recent_requests: list[RequestOut]
 
 
@@ -58,16 +59,16 @@ def summary(user: Admin, db: DB) -> AdminSummary:
     recent = db.scalars(select(AllocationRequest).order_by(AllocationRequest.id.desc()).limit(6)).all()
     return AdminSummary(
         pending_requests=len(pending),
-        pending_usd=round(sum(r.total_usd for r in pending), 2),
+        pending_sol=sol(sum(r.total_sol for r in pending)),
         climate_partners=db.scalar(select(func.count(User.id)).where(User.side == "organization")) or 0,
         land_partners=db.scalar(select(func.count(User.id)).where(User.side == "landowner")) or 0,
         fields=db.scalar(select(func.count(Field.id))) or 0,
         protect_available_t=round(sum(c.available for _, c in available_fields(db, "protect", year)), 2),
         plant_available_trees=int(sum(c.available for _, c in available_fields(db, "plant", year))),
         allocated_t=round(db.scalar(select(func.coalesce(func.sum(Allocation.tonnes), 0))) or 0, 2),
-        billed_usd=round(sum(i.total_usd for i in invoices), 2),
-        outstanding_usd=round(sum(i.total_usd for i in invoices if i.status == "unpaid"), 2),
-        fees_usd=round(sum(i.fee_usd for i in invoices), 2),
+        billed_sol=sol(sum(i.total_sol for i in invoices)),
+        outstanding_sol=sol(sum(i.total_sol for i in invoices if i.status == "unpaid")),
+        fees_sol=sol(sum(i.fee_sol for i in invoices)),
         recent_requests=[request_out(r) for r in recent],
     )
 
@@ -166,7 +167,7 @@ def allocate_request(request_id: int, payload: AllocateIn, user: Admin, db: DB) 
     done = "Trees allocated" if req.status == "allocated" else "Trees partly allocated"
     notify(
         db, [req.requester_id], "request.allocated", f"{done} for {req.trip.name}",
-        f"{allocated:g} t" + (f" · {trees} new trees" if trees else "") + f" · invoice {inv.number} ${inv.total_usd:,.2f}",
+        f"{allocated:g} t" + (f" · {trees} new trees" if trees else "") + f" · invoice {inv.number} {fmt_sol(inv.total_sol)}",
         f"/dashboard/trips/{req.trip_id}",
     )
     for a in created:
@@ -177,10 +178,10 @@ def allocate_request(request_id: int, payload: AllocateIn, user: Admin, db: DB) 
         )
     notify(
         db, admin_ids(db), "payout.new", f"{len(owed)} landowner payment{'s' if len(owed) != 1 else ''} to send",
-        f"${sum(p.amount_usd for p in owed):,.2f} for {req.trip.name}", f"/dashboard/payouts?request={req.id}",
+        f"{fmt_sol(sum(p.amount_sol for p in owed))} for {req.trip.name}", f"/dashboard/payouts?request={req.id}",
     )
     db.commit()
-    return AllocateOut(status=req.status, invoice_number=inv.number, invoice_total_usd=inv.total_usd, payout_ids=[p.id for p in owed])
+    return AllocateOut(status=req.status, invoice_number=inv.number, invoice_total_sol=inv.total_sol, payout_ids=[p.id for p in owed])
 
 
 @router.post("/requests/{request_id}/reject", response_model=RequestOut)

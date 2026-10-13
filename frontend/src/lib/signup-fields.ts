@@ -10,6 +10,7 @@ export type Field = {
   options?: string[];
   hint?: string;
   half?: boolean;
+  pattern?: string; // HTML pattern for text inputs
 };
 
 const DISTRICTS = [
@@ -31,7 +32,16 @@ const SPECIES = [
   "Other",
 ];
 
-const PAYOUT = ["eSewa", "Khalti", "Bank transfer", "Through cooperative"];
+// Rukh pays Land Partners in SOL. Any Solana wallet works (Phantom, Solflare, Backpack, …).
+const WALLET: Field = {
+  name: "solana_wallet",
+  label: "Solana wallet address",
+  type: "text",
+  required: true,
+  placeholder: "e.g. 7xKX…n4Qp from Phantom or Solflare",
+  hint: "We pay you in SOL here",
+  pattern: "[1-9A-HJ-NP-Za-km-z]{32,44}",
+};
 
 export const DISTRICT_OPTIONS = DISTRICTS;
 
@@ -104,7 +114,7 @@ export const CATEGORY_FIELDS: Record<string, Field[]> = {
     { name: "existing_trees", label: "Approx. trees on the land now", type: "number", half: true },
     { name: "open_to_planting", label: "Open to planting new trees?", type: "select", half: true, options: ["Yes", "Maybe", "No"] },
     { name: "species", label: "Tree species on your land", type: "chips", options: SPECIES },
-    { name: "payout_method", label: "How should we pay you?", type: "select", required: true, options: PAYOUT },
+    WALLET,
   ],
   community_forest: [
     { name: "cfug_name", label: "Community forest name", type: "text", required: true },
@@ -113,7 +123,7 @@ export const CATEGORY_FIELDS: Record<string, Field[]> = {
     { name: "area_ha", label: "Forest area (hectares)", type: "number", required: true, half: true },
     { name: "households", label: "Member households", type: "number", half: true },
     { name: "species", label: "Main species", type: "chips", options: SPECIES },
-    { name: "payout_method", label: "Payout method", type: "select", required: true, options: ["Bank transfer", "Through cooperative"] },
+    WALLET,
   ],
   cooperative: [
     { name: "cooperative_name", label: "Cooperative or estate name", type: "text", required: true },
@@ -125,5 +135,6 @@ export const CATEGORY_FIELDS: Record<string, Field[]> = {
       name: "crops", label: "Main crops", type: "chips",
       options: ["Tea", "Cardamom", "Coffee", "Fruit", "Timber", "Other"],
     },
+    WALLET,
   ],
 };

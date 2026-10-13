@@ -3,7 +3,7 @@
 import { RoleOnly } from "@/components/dashboard/shell";
 import { useApi } from "@/components/dashboard/session";
 import { Badge, Card, Empty, ErrorNote, Loading, PageHeader, StatCard } from "@/components/dashboard/ui";
-import { fmtDate, fmtNpr, fmtT, fmtUsd } from "@/lib/format";
+import { fmtDate, fmtSol, fmtT } from "@/lib/format";
 import type { Earning } from "@/lib/types";
 
 export function View() {
@@ -20,7 +20,7 @@ function Earnings() {
   if (error) return <ErrorNote message={error} />;
   if (!data) return <Loading />;
 
-  const total = data.reduce((s, e) => s + e.landowner_usd, 0);
+  const total = data.reduce((s, e) => s + e.landowner_sol, 0);
   const trees = data.reduce((s, e) => s + e.trees, 0);
   const tonnes = data.reduce((s, e) => s + e.tonnes, 0);
 
@@ -28,7 +28,7 @@ function Earnings() {
     <div>
       <PageHeader title="Earnings" subtitle="Every Climate Partner that funded your trees. Rukh pays you for every sale by your chosen method." />
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard icon="💰" label="Total earned" value={fmtNpr(total)} sub={fmtUsd(total)} />
+        <StatCard icon="💰" label="Total earned" value={fmtSol(total)} sub="Paid to your Solana wallet" />
         <StatCard icon="☁️" label="CO₂ sold" value={fmtT(tonnes)} sub={`${data.length} sales`} />
         <StatCard icon="🌱" label="New trees funded" value={trees.toLocaleString()} sub="to plant and care for" />
       </div>
@@ -60,7 +60,7 @@ function Earnings() {
                   </span>
                   <span className="text-muted">{fmtDate(e.created_at)}</span>
                   <span className="md:text-right">
-                    <span className="font-semibold text-brand">+{fmtNpr(e.landowner_usd)}</span>
+                    <span className="font-semibold text-brand">+{fmtSol(e.landowner_sol)}</span>
                     {e.payout_status && (
                       <span className="mt-1 block">
                         <Badge tone={e.payout_status === "paid" ? "green" : "amber"}>{e.payout_status === "paid" ? "Paid" : "Payment pending"}</Badge>

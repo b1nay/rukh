@@ -7,7 +7,7 @@ import { useApi } from "@/components/dashboard/session";
 import { Card, ErrorNote, FieldLabel, inputCls, PageHeader } from "@/components/dashboard/ui";
 import { api } from "@/lib/api";
 import { BUFFER_SHARE, FARMER_SHARE, IMPACT_TYPES } from "@/lib/content";
-import { fmtNpr, fmtT } from "@/lib/format";
+import { fmtSol, fmtT } from "@/lib/format";
 import { DISTRICT_OPTIONS } from "@/lib/signup-fields";
 import type { Field, Species } from "@/lib/types";
 
@@ -54,7 +54,7 @@ function NewField() {
   const treeCount = Number(trees) || (kind === "planting" ? Math.round(areaHa * PLANTING_DENSITY_PER_HA) : 0);
 
   const yearlyT = kind === "existing" ? (treeCount * rate * ageFactor(Number(age) || 0) * (1 - BUFFER_SHARE)) / 1000 : 0;
-  const estimateUsd =
+  const estimateSol =
     kind === "existing"
       ? yearlyT * IMPACT_TYPES.protect.pricePerTonne * FARMER_SHARE
       : treeCount * NEW_TREE_LIFETIME_T * IMPACT_TYPES.plant.pricePerTonne * FARMER_SHARE;
@@ -213,7 +213,7 @@ function NewField() {
         <aside className="h-fit lg:sticky lg:top-8">
           <Card tint className="p-6">
             <p className="text-sm text-muted">Estimated earnings</p>
-            <p className="mt-1 text-3xl font-semibold text-brand">{fmtNpr(estimateUsd)}</p>
+            <p className="mt-1 text-3xl font-semibold text-brand">{fmtSol(estimateSol)}</p>
             <p className="text-xs text-muted">{kind === "existing" ? "per year, if fully sold" : "over the 30-year commitment"}</p>
             <dl className="mt-5 space-y-2 border-t border-border pt-4 text-sm">
               <Row k="Area" v={`${areaHa.toFixed(2)} ha`} />

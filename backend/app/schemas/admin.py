@@ -56,19 +56,19 @@ class PayoutOut(BaseModel):
     invoice_status: str | None
     lines: list[PayoutLine]
     trees: int
-    amount_usd: float
-    amount_npr: float
+    amount_sol: float
     status: PayoutStatus
     method: str | None
-    reference: str | None
+    reference: str | None  # Solana transaction signature
+    wallet: str | None  # the landowner's Solana address (where it was sent, once paid)
     created_at: datetime
     paid_at: datetime | None
 
 
 class PayoutTotals(BaseModel):
     pending_count: int
-    pending_usd: float
-    paid_usd: float
+    pending_sol: float
+    paid_sol: float
     landowners: int
 
 
@@ -77,13 +77,16 @@ class PayoutList(BaseModel):
     items: list[PayoutOut]
 
 
-class PayIn(BaseModel):
+class IdsIn(BaseModel):
     ids: list[int] = Field(min_length=1)
-    method: Literal["eSewa", "Khalti", "Bank transfer", "Through cooperative"] | None = None  # None: each owner's preferred
+
+
+class PayIn(IdsIn):
+    signature: str = Field(min_length=64, max_length=100)  # the confirmed Solana transaction
 
 
 class AllocateOut(BaseModel):
     status: str
     invoice_number: str
-    invoice_total_usd: float
+    invoice_total_sol: float
     payout_ids: list[int]

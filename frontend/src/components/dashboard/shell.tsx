@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/site-chrome";
 import { ALL_CATEGORIES, ROLES } from "@/lib/content";
+import { SolanaProvider, WalletButton } from "@/lib/solana";
 import type { UserSide } from "@/lib/types";
 import { NotificationBell } from "./notification-bell";
 import { Loading } from "./ui";
@@ -23,12 +24,12 @@ const NAV: Record<UserSide, NavItem[]> = {
     { href: "/dashboard/requests", label: "Requests", icon: "📥" },
     { href: "/dashboard/map", label: "Field map", icon: "◉" },
     { href: "/dashboard/invoices", label: "Invoices", icon: "▤" },
-    { href: "/dashboard/payouts", label: "Pay", icon: "₨" },
+    { href: "/dashboard/payouts", label: "Pay", icon: "◈" },
   ],
   landowner: [
     { href: "/dashboard", label: "Overview", icon: "◎" },
     { href: "/dashboard/fields", label: "My fields", icon: "▦" },
-    { href: "/dashboard/earnings", label: "Earnings", icon: "₨" },
+    { href: "/dashboard/earnings", label: "Earnings", icon: "◈" },
     { href: "/dashboard/payments", label: "Payments", icon: "▤" },
   ],
 };
@@ -42,7 +43,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
       }
     >
-      <Frame>{children}</Frame>
+      <SolanaProvider>
+        <Frame>{children}</Frame>
+      </SolanaProvider>
     </SessionProvider>
   );
 }
@@ -95,6 +98,7 @@ function Frame({ children }: { children: React.ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="sticky top-0 z-30 hidden h-14 items-center justify-end gap-3 border-b border-border bg-white/80 px-8 backdrop-blur md:flex">
           <span className="text-xs text-muted">{user.display_name}</span>
+          <WalletButton />
           <NotificationBell />
         </div>
         {/* mobile top bar */}
@@ -102,6 +106,7 @@ function Frame({ children }: { children: React.ReactNode }) {
           <div className="flex h-14 items-center justify-between px-4">
             <Logo />
             <div className="flex items-center gap-3">
+              <WalletButton />
               <NotificationBell />
               <button onClick={logout} className="text-sm text-muted">
                 Log out

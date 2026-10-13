@@ -4,12 +4,19 @@ import tempfile
 _db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
 os.environ["RUKH_DATABASE_URL"] = f"sqlite:///{_db.name}"
 os.environ["RUKH_SEED_DEMO_DATA"] = "false"
+os.environ["RUKH_SOLANA_TREASURY"] = "4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T"
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app.db import Base, engine  # noqa: E402
 from app.main import app  # noqa: E402
+from app.services import solana  # noqa: E402
+
+TREASURY = os.environ["RUKH_SOLANA_TREASURY"]
+FARMER_WALLET = solana.demo_address("test-farmer")
+OTHER_WALLET = solana.demo_address("test-farmer-2")
+PAYER = solana.demo_address("test-payer")
 
 
 @pytest.fixture
@@ -62,7 +69,7 @@ def farmer(client):
         client,
         "farmer",
         {"full_name": "Sita Gurung", "phone": "9841000000", "password": "supersecret"},
-        {"district": "Kaski", "land_area": 12, "land_unit": "Ropani", "payout_method": "eSewa"},
+        {"district": "Kaski", "land_area": 12, "land_unit": "Ropani", "solana_wallet": FARMER_WALLET},
     )
 
 
@@ -71,3 +78,41 @@ def admin(client):
     res = client.post("/api/v1/auth/login", json={"identifier": "superadmin@rukh.com", "password": "rukh@123"})
     assert res.status_code == 200, res.text
     return res.json()
+
+
+class FakeChain:
+    """Stands in for Solana RPC: transactions "sent" here are what getTransaction returns."""
+
+    def __init__(self):
+        self.txs: dict[str, dict] = {}
+
+    def send(self, transfers, memo, payer=PAYER, failed=False) -> str:
+        sig = solana.b58encode(os.urandom(64))
+        instructions = [
+            {"program": "system", "parsed": {"type": "transfer", "info": {"source": payer, "destination": to, "lamports": amount}}}
+            for to, amount in transfers
+        ]
+        if memo is not None:
+            instructions.append({"program": "spl-memo", "parsed": memo})
+        self.txs[sig] = {
+            "slot": 1, "blockTime": 1_760_000_000,
+            "meta": {"err": {"InstructionError": [0, "Custom"]} if failed else None},
+            "transaction": {"message": {"accountKeys": [{"pubkey": payer, "signer": True}], "instructions": instructions}},
+        }
+        return sig
+
+    def pay(self, intent: dict, **kw) -> str:
+        """Send exactly what an API payment intent asks for."""
+        return self.send([(t["to"], t["lamports"]) for t in intent["transfers"]], intent["memo"], **kw)
+
+    def fetch(self, signature: str) -> dict:
+        if signature not in self.txs:
+            raise solana.PaymentError("This transaction isn't confirmed on Solana yet.")
+        return self.txs[signature]
+
+
+@pytest.fixture
+def chain(monkeypatch):
+    fake = FakeChain()
+    monkeypatch.setattr(solana, "_fetch_transaction", fake.fetch)
+    return fake

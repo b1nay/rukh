@@ -22,8 +22,8 @@ from datetime import date, datetime, time, timedelta, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.catalog import fmt_sol
 from app.api.requests import bill
-from app.catalog import USD_TO_NPR
 from app.core.security import hash_password
 from app.models import (
     AllocationRequest,
@@ -43,6 +43,7 @@ from app.services.allocation import apply, remaining_tonnes, suggest
 from app.services.billing import issue_for_request
 from app.services.inventory import sync_summary
 from app.services.itinerary import traveler_journey
+from app.services.solana import demo_address
 from app.services.sequestration import PLANTING_DENSITY_PER_HA
 
 PASSWORD = "rukh@123"
@@ -80,8 +81,7 @@ LANDS = [
     Land(
         "Sita Gurung", "Sita Gurung", "farmer", "9800000001",
         {"district": "Kaski", "municipality": "Pokhara Metropolitan City", "land_area": 64, "land_unit": "Ropani",
-         "existing_trees": 1240, "open_to_planting": "Yes", "species": ["Utis (Alnus nepalensis)", "Fruit trees", "Bamboo"],
-         "payout_method": "eSewa"},
+         "existing_trees": 1240, "open_to_planting": "Yes", "species": ["Utis (Alnus nepalensis)", "Fruit trees", "Bamboo"]},
         [
             Plot("Upper terrace utis grove", "Kaski", 2.0, 28.2712, 83.9705,
                  [("utis", 520, 14, 16.0, 24.0), ("utis", 280, 6, None, None)]),
@@ -94,8 +94,7 @@ LANDS = [
     Land(
         "Hari Thapa", "Bhumlichowk Community Forest", "community_forest", "9800000002",
         {"cfug_name": "Bhumlichowk Community Forest", "registration_no": "CFUG-GOR-0412", "district": "Gorkha",
-         "area_ha": 120, "households": 310, "species": ["Sal (Shorea robusta)", "Chilaune (Schima wallichii)"],
-         "payout_method": "Bank transfer"},
+         "area_ha": 120, "households": 310, "species": ["Sal (Shorea robusta)", "Chilaune (Schima wallichii)"]},
         [
             Plot("Sal forest block A", "Gorkha", 60.0, 27.9812, 84.6221, [("sal", 16000, 28, 22.0, 38.0), ("sal", 8000, 15, None, None)]),
             Plot("Degraded slope restoration", "Gorkha", 10.0, 27.9935, 84.6012, plant="chilaune"),
@@ -104,7 +103,7 @@ LANDS = [
     Land(
         "Maya Rai", "Ilam Tea Growers Cooperative", "cooperative", "9800000003",
         {"cooperative_name": "Ilam Tea Growers Cooperative", "registration_no": "COOP-ILM-2207", "district": "Ilam",
-         "members": 140, "plots": 36, "crops": ["Tea", "Cardamom"], "payout_method": "Through cooperative"},
+         "members": 140, "plots": 36, "crops": ["Tea", "Cardamom"]},
         [
             Plot("Tea garden shade trees", "Ilam", 15.0, 26.9105, 87.9268, [("utis", 3600, 9, 11.0, 17.0), ("chilaune", 1600, 12, None, None)]),
             Plot("Kanyam hillside planting", "Ilam", 3.0, 26.8662, 88.0703, plant="utis"),
@@ -112,20 +111,18 @@ LANDS = [
     ),
     Land(
         "Ram Bahadur Thapa", "Ram Bahadur Thapa", "farmer", "9800000004",
-        {"district": "Lamjung", "land_area": 18, "land_unit": "Ropani", "existing_trees": 220, "open_to_planting": "Maybe",
-         "payout_method": "Khalti"},
+        {"district": "Lamjung", "land_area": 18, "land_unit": "Ropani", "existing_trees": 220, "open_to_planting": "Maybe"},
         [Plot("Besisahar field-edge trees", "Lamjung", 0.8, 28.2311, 84.3794, [("chilaune", 220, 18, 14.0, 22.0)])],
     ),
     Land(
         "Laxmi Tamang", "Laxmi Tamang", "farmer", "9800000005",
-        {"district": "Nuwakot", "land_area": 22, "land_unit": "Ropani", "existing_trees": 300, "open_to_planting": "Yes",
-         "payout_method": "eSewa"},
+        {"district": "Nuwakot", "land_area": 22, "land_unit": "Ropani", "existing_trees": 300, "open_to_planting": "Yes"},
         [Plot("Bidur sisau rows", "Nuwakot", 1.0, 27.9201, 85.1588, [("sisau", 300, 10, None, None)])],
     ),
     Land(
         "Bishnu Chaudhary", "Sauraha Buffer Zone Community Forest", "community_forest", "9800000006",
         {"cfug_name": "Sauraha Buffer Zone Community Forest", "district": "Chitwan", "area_ha": 85, "households": 540,
-         "species": ["Sisau (Dalbergia sissoo)", "Sal (Shorea robusta)"], "payout_method": "Bank transfer"},
+         "species": ["Sisau (Dalbergia sissoo)", "Sal (Shorea robusta)"]},
         [
             Plot("Rapti riverine forest", "Chitwan", 40.0, 27.5791, 84.4985, [("sisau", 6000, 20, 18.0, 30.0), ("sal", 3000, 26, None, None)]),
             Plot("Rapti floodplain planting", "Chitwan", 6.0, 27.6012, 84.4598, plant="sisau"),
@@ -134,18 +131,18 @@ LANDS = [
     Land(
         "Pemba Sherpa", "Kalinchowk Community Forest", "community_forest", "9800000007",
         {"cfug_name": "Kalinchowk Community Forest", "district": "Dolakha", "area_ha": 40, "households": 190,
-         "species": ["Khote salla (Pinus roxburghii)"], "payout_method": "Bank transfer"},
+         "species": ["Khote salla (Pinus roxburghii)"]},
         [Plot("Charikot pine forest", "Dolakha", 25.0, 27.6789, 86.0402, [("khote_salla", 9000, 30, 20.0, 32.0)])],
     ),
     Land(
         "Sunita Shrestha", "Sunita Shrestha", "farmer", "9800000008",
-        {"district": "Kavrepalanchok", "land_area": 9, "land_unit": "Ropani", "existing_trees": 150, "payout_method": "Khalti"},
+        {"district": "Kavrepalanchok", "land_area": 9, "land_unit": "Ropani", "existing_trees": 150},
         [Plot("Dhulikhel fruit and utis plot", "Kavrepalanchok", 0.5, 27.6201, 85.5512, [("fruit", 90, 7, None, None), ("utis", 60, 12, None, None)])],
     ),
     Land(
         "Gopal Pandey", "Tansen Agroforestry Cooperative", "cooperative", "9800000009",
         {"cooperative_name": "Tansen Agroforestry Cooperative", "district": "Palpa", "members": 85, "plots": 22,
-         "crops": ["Coffee", "Ginger"], "payout_method": "Through cooperative"},
+         "crops": ["Coffee", "Ginger"]},
         [
             Plot("Tansen agroforestry plots", "Palpa", 8.0, 27.8698, 83.5476, [("other", 2400, 15, None, None)]),
             Plot("Rampur slope planting", "Palpa", 4.0, 27.8512, 83.6011, plant="chilaune"),
@@ -153,39 +150,39 @@ LANDS = [
     ),
     Land(
         "Kamala Oli", "Kamala Oli", "farmer", "9800000010",
-        {"district": "Dang", "land_area": 4, "land_unit": "Bigha", "existing_trees": 900, "payout_method": "eSewa"},
+        {"district": "Dang", "land_area": 4, "land_unit": "Bigha", "existing_trees": 900},
         [Plot("Ghorahi sal patch", "Dang", 3.0, 28.0532, 82.4887, [("sal", 900, 22, None, None)])],
     ),
     Land(
         "Dhan Bahadur Rana", "Mohana Community Forest", "community_forest", "9800000011",
         {"cfug_name": "Mohana Community Forest", "district": "Kailali", "area_ha": 70, "households": 420,
-         "species": ["Sal (Shorea robusta)"], "payout_method": "Bank transfer"},
+         "species": ["Sal (Shorea robusta)"]},
         [Plot("Mohana sal forest", "Kailali", 50.0, 28.7318, 80.6211, [("sal", 18000, 35, 25.0, 42.0)])],
     ),
     Land(
         "Tek Bahadur KC", "Tek Bahadur KC", "farmer", "9800000012",
-        {"district": "Syangja", "land_area": 30, "land_unit": "Ropani", "existing_trees": 400, "payout_method": "Khalti"},
+        {"district": "Syangja", "land_area": 30, "land_unit": "Ropani", "existing_trees": 400},
         [Plot("Waling coffee shade trees", "Syangja", 1.5, 28.0621, 83.7702, [("other", 400, 9, None, None)])],
     ),
     Land(
         "Anita Lama", "Anita Lama", "farmer", "9800000013",
-        {"district": "Makwanpur", "land_area": 40, "land_unit": "Ropani", "existing_trees": 600, "payout_method": "eSewa"},
+        {"district": "Makwanpur", "land_area": 40, "land_unit": "Ropani", "existing_trees": 600},
         [Plot("Hetauda bamboo grove", "Makwanpur", 2.0, 27.4295, 85.0322, [("bamboo", 600, 6, None, None)])],
     ),
     Land(
         "Nar Bahadur Limbu", "Hile Community Forest", "community_forest", "9800000014",
         {"cfug_name": "Hile Community Forest", "district": "Dhankuta", "area_ha": 30, "households": 160,
-         "species": ["Chilaune (Schima wallichii)"], "payout_method": "Through cooperative"},
+         "species": ["Chilaune (Schima wallichii)"]},
         [Plot("Hile chilaune forest", "Dhankuta", 12.0, 27.0312, 87.3188, [("chilaune", 4200, 24, None, None)])],
     ),
     Land(
         "Ang Dorje Sherpa", "Ang Dorje Sherpa", "farmer", "9800000015",
-        {"district": "Solukhumbu", "land_area": 50, "land_unit": "Ropani", "existing_trees": 1800, "payout_method": "Bank transfer"},
+        {"district": "Solukhumbu", "land_area": 50, "land_unit": "Ropani", "existing_trees": 1800},
         [Plot("Salleri pine woodlot", "Solukhumbu", 6.0, 27.5032, 86.5841, [("khote_salla", 1800, 19, None, None)])],
     ),
     Land(
         "Bhim Pun", "Bhim Pun", "farmer", "9800000016",
-        {"district": "Myagdi", "land_area": 26, "land_unit": "Ropani", "open_to_planting": "Yes", "payout_method": "eSewa"},
+        {"district": "Myagdi", "land_area": 26, "land_unit": "Ropani", "open_to_planting": "Yes"},
         [Plot("Beni terrace planting", "Myagdi", 2.0, 28.3502, 83.5688, plant="utis")],
     ),
 ]
@@ -234,7 +231,7 @@ NATIONALITY = {
     "NRT": "Japanese", "HKG": "Hong Konger", "BKK": "Thai", "KTM": "Nepali",
 }
 
-PAY_METHODS = ["card", "bank_transfer", "khalti", "esewa"]
+PAY_METHOD = "solana"
 
 
 class Demo:
@@ -252,6 +249,7 @@ class Demo:
         return datetime.combine(d, time(hour, self.rng.randint(0, 59)), timezone.utc)
 
     def reference(self) -> str:
+        # Demo payments never touched the chain, so they carry no transaction signature.
         return f"DEMO-{self.rng.getrandbits(32):08X}"
 
     def note(self, user_ids, kind: str, title: str, body: str | None, link: str | None, when: datetime) -> None:
@@ -282,8 +280,9 @@ class Demo:
         self.landowner: User | None = None
         for i, land in enumerate(LANDS):
             joined = 350 - i * 12
+            profile = {**land.profile, "solana_wallet": demo_address(land.phone)}
             u = self.user(side="landowner", category=land.category, display_name=land.display_name, full_name=land.full_name,
-                          profile=land.profile, email=land.email, phone=land.phone, joined=joined)
+                          profile=profile, email=land.email, phone=land.phone, joined=joined)
             if land.email == LANDOWNER_EMAIL:
                 self.landowner = u
             for j, p in enumerate(land.plots):
@@ -361,7 +360,7 @@ class Demo:
         self.db.add(req)
         self.db.flush()
         self.note(self.admins, "request.new", f"New allocation request from {owner.display_name}",
-                  f"{trip.name} · {tonnes:g} t {impact.title()} · ${req.total_usd:,.2f}", f"/dashboard/requests/{req.id}", req.created_at)
+                  f"{trip.name} · {tonnes:g} t {impact.title()} · {fmt_sol(req.total_sol)}", f"/dashboard/requests/{req.id}", req.created_at)
         return req
 
     def allocate(self, req: AllocationRequest, days_ago: float, share: float = 1.0, admin_note: str | None = None) -> tuple[Invoice, list[Payout]]:
@@ -386,21 +385,21 @@ class Demo:
         owner = req.requester
         trees = sum(a.trees for a in created)
         self.note([owner.id], "request.allocated", f"Trees allocated for {req.trip.name}",
-                  f"{allocated:g} t" + (f" · {trees} new trees" if trees else "") + f" · invoice {inv.number} ${inv.total_usd:,.2f}",
+                  f"{allocated:g} t" + (f" · {trees} new trees" if trees else "") + f" · invoice {inv.number} {fmt_sol(inv.total_sol)}",
                   f"/dashboard/trips/{req.trip_id}", when)
         for a in created:
             self.note([a.field.owner_id], "field.funded", f"{owner.display_name} funded your trees",
                       f"{a.field.name}: " + (f"{a.trees} new trees" if a.trees else f"{a.tonnes:g} t protected"), "/dashboard/earnings", when)
         self.note(self.admins, "payout.new", f"{len(owed)} landowner payment{'s' if len(owed) != 1 else ''} to send",
-                  f"${sum(p.amount_usd for p in owed):,.2f} for {req.trip.name}", f"/dashboard/payouts?request={req.id}", when)
+                  f"{fmt_sol(sum(p.amount_sol for p in owed))} for {req.trip.name}", f"/dashboard/payouts?request={req.id}", when)
         return inv, owed
 
-    def client_pays(self, inv: Invoice, days_ago: float, method: str | None = None) -> None:
+    def client_pays(self, inv: Invoice, days_ago: float, method: str = PAY_METHOD) -> None:
         inv.status = "paid"
         inv.paid_at = self.at(days_ago, 16)
-        inv.payment_method = method or self.rng.choice(PAY_METHODS)
+        inv.payment_method = method
         inv.payment_reference = self.reference()
-        self.note(self.admins, "invoice.paid", f"{inv.user.display_name} paid {inv.number}", f"${inv.total_usd:,.2f}",
+        self.note(self.admins, "invoice.paid", f"{inv.user.display_name} paid {inv.number}", f"{fmt_sol(inv.total_sol)}",
                   "/dashboard/invoices", inv.paid_at)
 
     def pay_landowners(self, owed: list[Payout], days_ago: float) -> None:
@@ -408,8 +407,9 @@ class Demo:
             p.status = "paid"
             p.paid_at = self.at(days_ago, 11)
             p.reference = self.reference()
-            self.note([p.owner_id], "payout.paid", f"Payment sent: NPR {round(p.amount_usd * USD_TO_NPR):,}",
-                      f"{p.number} by {p.method}", "/dashboard/payments", p.paid_at)
+            p.wallet = p.owner.profile.get("solana_wallet")
+            self.note([p.owner_id], "payout.paid", f"Payment sent: {fmt_sol(p.amount_sol)}",
+                      f"{p.number} on Solana", "/dashboard/payments", p.paid_at)
 
     def plant(self, owed: list[Payout], days_after: int) -> None:
         """Record new trees as planted on the land a Plant request reserved."""
@@ -448,20 +448,20 @@ class Demo:
         t1 = self.trip(co, "Annapurna Base Camp Trek", -300, [("LHR", 6), ("MAN", 3), ("FRA", 2)])
         r = self.request(t1, "protect", 292)
         inv, owed = self.allocate(r, 290, admin_note="Smallholder groves in Kaski first.")
-        self.client_pays(inv, 284, "card")
+        self.client_pays(inv, 284)
         self.pay_landowners(owed, 280)
 
         t2 = self.trip(co, "Everest Base Camp Trek", -240, [("LHR", 8), ("AMS", 4)])
         r = self.request(t2, "plant", 233, note="Our spring group asked for new trees this time.")
         inv, owed = self.allocate(r, 230)
-        self.client_pays(inv, 221, "bank_transfer")
+        self.client_pays(inv, 221)
         self.pay_landowners(owed, 218)
         self.plant(owed, 45)
 
         t3 = self.trip(co, "Kathmandu · Chitwan · Pokhara Tour", -180, [("SYD", 5), ("MEL", 4)])
         r = self.request(t3, "protect", 174)
         inv, owed = self.allocate(r, 172)
-        self.client_pays(inv, 165, "khalti")
+        self.client_pays(inv, 165)
         self.pay_landowners(owed, 160)
 
         t4 = self.trip(co, "Everest Base Camp Trek", -150, [("NRT", 3), ("ICN", 2)])
@@ -475,7 +475,7 @@ class Demo:
         t5 = self.trip(co, "Langtang Valley Trek", -120, [("JFK", 4), ("BOS", 3), ("CDG", 2)])
         r = self.request(t5, "plant", 115)
         inv, owed = self.allocate(r, 112)
-        self.client_pays(inv, 100, "card")
+        self.client_pays(inv, 100)
         self.pay_landowners(owed, 96)
         self.plant(owed, 30)
 
@@ -486,7 +486,7 @@ class Demo:
         t7 = self.trip(co, "Annapurna Base Camp Trek", -40, [("FRA", 5), ("MUC", 4)])
         r = self.request(t7, "protect", 33)
         inv, owed = self.allocate(r, 30, share=0.6, admin_note="Part allocated now; the rest after the next field survey.")
-        self.client_pays(inv, 22, "esewa")
+        self.client_pays(inv, 22)
 
         t8 = self.trip(co, "Everest Base Camp Trek", -18, [("DXB", 3), ("DOH", 2), ("SIN", 3)])
         r = self.request(t8, "protect", 6, note="Group back safely. Please cover the whole trip.")
@@ -505,7 +505,7 @@ class Demo:
         n1 = self.trip(o["ngo"], "Annapurna Base Camp Trek", -50, [("DXB", 3), ("DEL", 3)], name="Annapurna watershed monitoring")
         r = self.request(n1, "protect", 45)
         inv, owed = self.allocate(r, 44)
-        self.client_pays(inv, 30, "bank_transfer")
+        self.client_pays(inv, 30)
         self.pay_landowners(owed, 28)
 
         n2 = self.trip(o["ngo"], "Kathmandu · Chitwan · Pokhara Tour", -8, [("BOM", 4), ("DEL", 2)], name="Terai community visit")

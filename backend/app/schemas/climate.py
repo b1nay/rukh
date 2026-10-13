@@ -156,7 +156,7 @@ class AllocationOut(BaseModel):
     year: int
     tonnes: float
     trees: int
-    amount_usd: float
+    amount_sol: float
     field_id: int
     field_name: str
     district: str
@@ -192,7 +192,7 @@ class TripDetail(TripSummary):
     traveler_list: list[TravelerOut]
     allocations: list[AllocationOut]
     requests: list[RequestOut]
-    spend_usd: float
+    spend_sol: float
 
 
 class MonthPoint(BaseModel):
@@ -208,7 +208,7 @@ class ClimateSummary(BaseModel):
     covered_t: float
     new_trees: int
     tree_years: int
-    spend_usd: float
+    spend_sol: float
     monthly: list[MonthPoint]
     recent_trips: list[TripSummary]
     top_itineraries: list[ItineraryOut]

@@ -1,8 +1,7 @@
-export const USD_TO_NPR = 135;
-
 export const fmtT = (t: number) => `${t.toLocaleString(undefined, { maximumFractionDigits: t < 10 ? 2 : 1 })} t`;
-export const fmtUsd = (v: number) => `$${v.toLocaleString(undefined, { maximumFractionDigits: v < 100 ? 2 : 0 })}`;
-export const fmtNpr = (usd: number) => `NPR ${Math.round(usd * USD_TO_NPR).toLocaleString()}`;
+/** SOL amounts: 4 decimals normally, down to one lamport for tiny amounts. */
+export const fmtSol = (v: number) =>
+  `${v.toLocaleString(undefined, { maximumFractionDigits: v === 0 || Math.abs(v) >= 0.0001 ? (Math.abs(v) >= 100 ? 2 : 4) : 9 })} SOL`;
 export const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 export const fmtMonth = (ym: string) =>

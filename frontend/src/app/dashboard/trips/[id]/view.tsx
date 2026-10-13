@@ -10,7 +10,7 @@ import { useApi, useSession } from "@/components/dashboard/session";
 import { Badge, Card, ErrorNote, Loading, Meter, PageHeader, StatCard, TripStatusBadge } from "@/components/dashboard/ui";
 import { api } from "@/lib/api";
 import { FEE_RATES, IMPACT_TYPES, ImpactType } from "@/lib/content";
-import { fmtDate, fmtT, fmtUsd, osmLink } from "@/lib/format";
+import { fmtDate, fmtT, fmtSol, osmLink } from "@/lib/format";
 import { CATEGORIES, fmtHours, fmtKg } from "@/lib/itinerary";
 import type { AllocationRequest, TripDetail } from "@/lib/types";
 
@@ -77,7 +77,7 @@ function Trip() {
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard icon="☁️" label="CO₂ measured" value={fmtT(trip.co2_t)} sub={`${fmtT(trip.co2_t / Math.max(1, trip.travelers))} per traveler · ${trip.travelers} people`} />
         <StatCard icon="✅" label="Covered" value={fmtT(trip.covered_t)} sub={`${fmtT(remaining)} still open`} />
-        <StatCard icon="💳" label="Spend" value={fmtUsd(trip.spend_usd)} sub={`${trip.allocations.length} allocations`} />
+        <StatCard icon="💳" label="Spend" value={fmtSol(trip.spend_sol)} sub={`${trip.allocations.length} allocations`} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.4fr]">
@@ -143,7 +143,7 @@ function Trip() {
               <RequestStatusBadge status="pending" />
             </div>
             <p className="mt-1 text-sm text-muted">
-              {fmtT(pending.tonnes)} {IMPACT_TYPES[pending.impact_type].name} · bill {fmtUsd(pending.total_usd)} · sent {fmtDate(pending.created_at)}.
+              {fmtT(pending.tonnes)} {IMPACT_TYPES[pending.impact_type].name} · bill {fmtSol(pending.total_sol)} · sent {fmtDate(pending.created_at)}.
               You&apos;ll be notified when fields are allocated.
             </p>
           </div>
@@ -170,7 +170,7 @@ function Trip() {
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{IMPACT_TYPES[k].name}</span>
-                  <span className="text-sm text-muted">${IMPACT_TYPES[k].pricePerTonne}/t</span>
+                  <span className="text-sm text-muted">{IMPACT_TYPES[k].pricePerTonne} SOL/t</span>
                 </div>
                 <p className="mt-1 text-xs text-muted">{IMPACT_TYPES[k].tagline}</p>
               </button>
@@ -185,9 +185,9 @@ function Trip() {
               className="w-full resize-none rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
             />
             <div className="rounded-xl border border-border bg-white p-4 text-sm">
-              <p className="flex justify-between"><span className="text-muted">{fmtT(remaining)} × ${price}</span><span>{fmtUsd(subtotal)}</span></p>
-              <p className="mt-1 flex justify-between"><span className="text-muted">Platform fee ({Math.round(feeRate * 100)}%)</span><span>{fmtUsd(subtotal * feeRate)}</span></p>
-              <p className="mt-2 flex justify-between border-t border-border pt-2 font-semibold"><span>Estimated bill</span><span>{fmtUsd(subtotal * (1 + feeRate))}</span></p>
+              <p className="flex justify-between"><span className="text-muted">{fmtT(remaining)} × {price} SOL</span><span>{fmtSol(subtotal)}</span></p>
+              <p className="mt-1 flex justify-between"><span className="text-muted">Platform fee ({Math.round(feeRate * 100)}%)</span><span>{fmtSol(subtotal * feeRate)}</span></p>
+              <p className="mt-2 flex justify-between border-t border-border pt-2 font-semibold"><span>Estimated bill</span><span>{fmtSol(subtotal * (1 + feeRate))}</span></p>
               {impact === "plant" && <p className="mt-1 text-xs text-muted">About {Math.ceil(remaining / 0.5)} new trees</p>}
             </div>
           </div>
@@ -217,7 +217,7 @@ function Trip() {
                     <RequestStatusBadge status={r.status} />
                   </div>
                   <p className="text-xs text-muted">
-                    Bill {fmtUsd(r.total_usd)} · {fmtDate(r.created_at)}
+                    Bill {fmtSol(r.total_sol)} · {fmtDate(r.created_at)}
                     {r.allocated_tonnes > 0 && ` · ${fmtT(r.allocated_tonnes)} allocated`}
                     {r.admin_note && ` · Rukh: “${r.admin_note}”`}
                   </p>
@@ -266,7 +266,7 @@ function Trip() {
                       {fmtT(a.tonnes)}
                     </span>
                     <span className="flex items-center gap-3">
-                      <span className="text-muted">{fmtUsd(a.amount_usd)}</span>
+                      <span className="text-muted">{fmtSol(a.amount_sol)}</span>
                       {a.latitude != null && a.longitude != null && (
                         <a href={osmLink(a.latitude, a.longitude)} target="_blank" rel="noreferrer" className="text-xs font-medium text-brand">
                           Map ↗

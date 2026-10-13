@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Pricing } from "@/components/pricing";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
+import { SolanaMark } from "@/components/solana-mark";
 
 export default function Home() {
   return (
@@ -11,7 +12,7 @@ export default function Home() {
         <Features />
         <section id="pricing" className="scroll-mt-20 py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <SectionHead title="Simple, per-tonne pricing" body="Choose how your tonnes are covered. Pay only for what you use." />
+            <SectionHead title="Simple, per-tonne pricing" body="Choose how your tonnes are covered. Pay in SOL, only for what you use." />
             <div className="mt-12">
               <Pricing />
             </div>
@@ -49,13 +50,15 @@ function Hero() {
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(50%_60%_at_0%_0%,#dcfce7_0%,transparent_70%),radial-gradient(45%_55%_at_100%_0%,#ecfccb_0%,transparent_70%)]"
       />
       <div className="mx-auto max-w-6xl px-4 pb-20 pt-14 text-center sm:px-6">
-        <p className="text-xs font-medium text-brand">Nepal&apos;s verified tree platform 🌱</p>
+        <p className="inline-flex items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-1 text-xs font-medium text-brand">
+          <SolanaMark /> Paid and settled on Solana · Nepal&apos;s verified tree platform 🌱
+        </p>
         <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
           Offset Travel with Real Trees in <span className="text-brand">Nepal</span>
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-sm text-muted sm:text-base">
           Measure your travelers&apos; flight emissions and fund specific trees you can see on a map,
-          cared for by local landowners.
+          cared for by local landowners. Every payment is in SOL and can be checked on chain.
         </p>
         <Link
           href="/signup"
@@ -94,7 +97,7 @@ function HeroVisual() {
           {[
             ["4", "Utis trees"],
             ["Kaski", "District"],
-            ["$54", "Plant tier"],
+            ["0.3 SOL", "Plant tier"],
           ].map(([v, l]) => (
             <div key={l} className="rounded-xl bg-surface-muted p-3">
               <p className="text-base font-semibold">{v}</p>
@@ -104,7 +107,7 @@ function HeroVisual() {
         </div>
       </div>
       <Chip className="left-6 top-10 hidden sm:flex" icon="🌳">4 trees allocated</Chip>
-      <Chip className="bottom-12 right-6 hidden sm:flex" icon="💸">NPR 4,350 paid via eSewa</Chip>
+      <Chip className="bottom-12 right-6 hidden sm:flex" icon="💸">0.18 SOL paid on Solana</Chip>
     </div>
   );
 }
@@ -144,9 +147,9 @@ const FEATURES = [
   { title: "Flight Emissions", body: "Upload travelers or connect bookings. CO₂ is calculated per flight.", art: <ArtFlight /> },
   { title: "Tree Allocation", body: "Each tonne is matched to real trees. No tree is sold twice.", art: <ArtTrees /> },
   { title: "Satellite Verification", body: "Every field is checked from space, so the trees are really there.", art: <ArtSatellite /> },
-  { title: "Landowner Payouts", body: "Farmers and community forests are paid by eSewa, Khalti or bank.", art: <ArtPayout /> },
+  { title: "Landowner Payouts", body: "Farmers and community forests are paid in SOL, straight to their own wallet.", art: <ArtPayout /> },
   { title: "Traveler Certificates", body: "Share a map of each traveler's trees, not a certificate number.", art: <ArtCertificate /> },
-  { title: "Billing & Reports", body: "Monthly invoices and audit-ready reports, all in one place.", art: <ArtReport /> },
+  { title: "Billing & Reports", body: "Invoices settled in SOL, each payment linked to its transaction on chain.", art: <ArtReport /> },
 ];
 
 function Features() {
@@ -224,9 +227,9 @@ function ArtPayout() {
   return (
     <div className={`${artCard} w-52 p-3 text-xs`}>
       <p className="text-muted">Payout · Sita Gurung</p>
-      <p className="mt-1 text-lg font-semibold">NPR 4,350</p>
+      <p className="mt-1 text-lg font-semibold">0.18 SOL</p>
       <div className="mt-2 flex items-center justify-between">
-        <span className="rounded-md bg-surface-muted px-2 py-1 text-muted">eSewa</span>
+        <span className="flex items-center gap-1 rounded-md bg-surface-muted px-2 py-1 text-muted"><SolanaMark className="h-3 w-3" /> Solana</span>
         <span className="rounded-full bg-brand-soft px-2 py-0.5 font-medium text-brand">Paid</span>
       </div>
     </div>
@@ -277,7 +280,7 @@ function Landowners() {
               Own trees or land? <span className="text-brand">Get paid</span> to keep them growing.
             </h2>
             <p className="mt-3 text-sm text-muted">
-              Draw your field, add your trees, and earn 60% of every tonne they absorb.
+              Draw your field, add your trees, and earn 60% of every tonne they absorb, paid in SOL to your wallet.
             </p>
             <Link
               href="/signup?side=landowner"

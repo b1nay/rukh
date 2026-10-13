@@ -4,7 +4,7 @@ from datetime import date
 
 from fastapi import APIRouter, HTTPException, status
 
-from app.catalog import IMPACT_TYPES, PLANS
+from app.catalog import IMPACT_TYPES, PLANS, fmt_sol, sol
 from app.deps import DB, ClimatePartner, CurrentUser
 from app.models import AllocationRequest, Message, Trip, User
 from app.schemas.requests import MessageIn, MessageOut, RequestIn, RequestOut
@@ -26,10 +26,10 @@ def request_out(r: AllocationRequest) -> RequestOut:
         year=r.year,
         tonnes=r.tonnes,
         price_per_tonne=r.price_per_tonne,
-        subtotal_usd=r.subtotal_usd,
+        subtotal_sol=r.subtotal_sol,
         fee_rate=r.fee_rate,
-        fee_usd=r.fee_usd,
-        total_usd=r.total_usd,
+        fee_sol=r.fee_sol,
+        total_sol=r.total_sol,
         status=r.status,
         note=r.note,
         admin_note=r.admin_note,
@@ -41,11 +41,11 @@ def request_out(r: AllocationRequest) -> RequestOut:
 
 
 def bill(user: User, impact_type: str, tonnes: float) -> dict:
-    price = IMPACT_TYPES[impact_type]["price_per_tonne_usd"]
+    price = IMPACT_TYPES[impact_type]["price_per_tonne_sol"]
     fee_rate = PLANS.get(user.plan or "starter", PLANS["starter"])["platform_fee_rate"] or 0.0
-    subtotal = round(tonnes * price, 2)
-    fee = round(subtotal * fee_rate, 2)
-    return {"price_per_tonne": price, "subtotal_usd": subtotal, "fee_rate": fee_rate, "fee_usd": fee, "total_usd": round(subtotal + fee, 2)}
+    subtotal = sol(tonnes * price)
+    fee = sol(subtotal * fee_rate)
+    return {"price_per_tonne": price, "subtotal_sol": subtotal, "fee_rate": fee_rate, "fee_sol": fee, "total_sol": sol(subtotal + fee)}
 
 
 @router.post("/climate/trips/{trip_id}/requests", response_model=RequestOut, status_code=status.HTTP_201_CREATED)
@@ -75,7 +75,7 @@ def create_request(trip_id: int, payload: RequestIn, user: ClimatePartner, db: D
         admin_ids(db),
         "request.new",
         f"New allocation request from {user.display_name}",
-        f"{trip.name} · {tonnes:g} t {IMPACT_TYPES[payload.impact_type]['name']} · ${req.total_usd:,.2f}",
+        f"{trip.name} · {tonnes:g} t {IMPACT_TYPES[payload.impact_type]['name']} · {fmt_sol(req.total_sol)}",
         f"/dashboard/requests/{req.id}",
     )
     db.commit()

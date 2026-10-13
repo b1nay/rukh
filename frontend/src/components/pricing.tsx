@@ -19,7 +19,7 @@ export function Pricing() {
                 impact === k ? "bg-white text-brand shadow-sm" : "text-muted hover:text-foreground"
               }`}
             >
-              {IMPACT_TYPES[k].name} · ${IMPACT_TYPES[k].pricePerTonne}/t
+              {IMPACT_TYPES[k].name} · {IMPACT_TYPES[k].pricePerTonne} SOL/t
             </button>
           ))}
         </div>

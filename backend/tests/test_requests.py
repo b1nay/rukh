@@ -1,6 +1,6 @@
 import pytest
 
-from tests.conftest import auth
+from tests.conftest import PAYER, TREASURY, auth
 from tests.test_dashboards import add_field, new_trip
 
 
@@ -19,9 +19,10 @@ def test_request_bill_goes_to_admin(client, operator, admin):
     req = request_trees(client, operator["token"], trip["id"], note="Spring group")
     assert req["status"] == "pending"
     assert req["tonnes"] == pytest.approx(trip["co2_t"], abs=0.001)
-    assert req["subtotal_usd"] == pytest.approx(req["tonnes"] * 34, abs=0.01)
+    assert req["price_per_tonne"] == 0.19
+    assert req["subtotal_sol"] == pytest.approx(req["tonnes"] * 0.19, abs=1e-6)
     assert req["fee_rate"] == 0.07  # Operator plan
-    assert req["total_usd"] == pytest.approx(req["subtotal_usd"] + req["fee_usd"], abs=0.01)
+    assert req["total_sol"] == pytest.approx(req["subtotal_sol"] + req["fee_sol"], abs=1e-6)
 
     n = unread(client, admin["token"])
     assert n["unread"] == 1 and n["items"][0]["kind"] == "request.new"
@@ -30,7 +31,7 @@ def test_request_bill_goes_to_admin(client, operator, admin):
     assert dup.status_code == 409
 
 
-def test_admin_allocates_and_partner_is_billed(client, operator, farmer, admin):
+def test_admin_allocates_and_partner_is_billed(client, operator, farmer, admin, chain):
     add_field(client, farmer["token"], kind="planting", tree_count=None, area_ha=1)
     trip = new_trip(client, operator["token"])
     req = request_trees(client, operator["token"], trip["id"])
@@ -53,14 +54,25 @@ def test_admin_allocates_and_partner_is_billed(client, operator, farmer, admin):
     bills = client.get("/api/v1/climate/invoices", headers=auth(operator["token"])).json()
     inv = bills["items"][0]
     assert inv["status"] == "unpaid" and inv["number"].startswith("RUKH-")
-    assert inv["total_usd"] == pytest.approx(req["total_usd"], abs=0.02)
-    assert bills["totals"]["outstanding_usd"] == pytest.approx(inv["total_usd"])
+    assert inv["total_sol"] == pytest.approx(req["total_sol"], abs=1e-4)
+    assert bills["totals"]["outstanding_sol"] == pytest.approx(inv["total_sol"])
 
     assert client.get("/api/v1/climate/invoices?status=paid", headers=auth(operator["token"])).json()["items"] == []
-    paid = client.post(f"/api/v1/climate/invoices/{inv['id']}/pay", json={"method": "khalti"}, headers=auth(operator["token"]))
-    assert paid.json()["status"] == "paid" and paid.json()["payment_method"] == "Khalti"
+    intent = client.get(f"/api/v1/climate/invoices/{inv['id']}/solana", headers=auth(operator["token"])).json()
+    assert intent["memo"] == f"Rukh invoice {inv['number']}" and intent["cluster"] == "devnet"
+    assert intent["transfers"] == [
+        {"to": TREASURY, "lamports": round(inv["total_sol"] * 1e9), "amount_sol": inv["total_sol"], "label": inv["number"]}
+    ]
+    sig = chain.pay(intent)
+    paid = client.post(f"/api/v1/climate/invoices/{inv['id']}/pay", json={"signature": sig}, headers=auth(operator["token"]))
+    assert paid.status_code == 200, paid.text
+    body = paid.json()
+    assert body["status"] == "paid" and body["payment_method"] == "Solana"
+    assert body["payment_reference"] == sig and body["payer_wallet"] == PAYER
+    again = client.post(f"/api/v1/climate/invoices/{inv['id']}/pay", json={"signature": sig}, headers=auth(operator["token"]))
+    assert again.status_code == 409
     again = client.get("/api/v1/climate/invoices?status=paid", headers=auth(operator["token"])).json()
-    assert len(again["items"]) == 1 and again["totals"]["outstanding_usd"] == 0
+    assert len(again["items"]) == 1 and again["totals"]["outstanding_sol"] == 0
 
 
 def test_admin_cannot_overallocate_a_field(client, operator, farmer, admin):

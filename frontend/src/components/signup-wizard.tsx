@@ -702,6 +702,8 @@ function DynamicField({
         type={field.type}
         required={field.required}
         placeholder={field.placeholder}
+        pattern={field.pattern}
+        title={field.pattern ? field.hint : undefined}
         min={field.type === "number" ? 0 : undefined}
         step={field.type === "number" ? "any" : undefined}
         value={(value as string) ?? ""}

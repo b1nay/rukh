@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     # Superadmin created at startup if no admin exists. Change both outside local dev.
     admin_email: str = "superadmin@rukh.com"
     admin_password: str = "rukh@123"
+    # Payments settle in SOL. Use devnet until the platform goes live.
+    solana_cluster: str = "devnet"  # devnet | testnet | mainnet-beta
+    solana_rpc_url: str = "https://api.devnet.solana.com"
+    # Wallet that receives Climate Partner payments. The superadmin can also set it in the app.
+    solana_treasury: str | None = None
 
 
 settings = Settings()

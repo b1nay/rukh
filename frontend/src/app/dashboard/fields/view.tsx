@@ -5,7 +5,7 @@ import { RoleOnly } from "@/components/dashboard/shell";
 import { useApi } from "@/components/dashboard/session";
 import { Badge, ButtonLink, Card, Empty, ErrorNote, Loading, Meter, PageHeader } from "@/components/dashboard/ui";
 import { RoleMap } from "@/components/dashboard/role-map";
-import { fmtNpr, fmtT, osmLink } from "@/lib/format";
+import { fmtSol, fmtT, osmLink } from "@/lib/format";
 import type { Field } from "@/lib/types";
 
 export function View() {
@@ -47,7 +47,7 @@ function Fields() {
               <div className="mt-5 grid grid-cols-3 gap-2 text-center">
                 <Mini label={f.kind === "existing" ? "Trees" : "Slots"} value={f.tree_count.toLocaleString()} />
                 <Mini label={f.kind === "existing" ? "CO₂ / year" : "Planted"} value={f.kind === "existing" ? fmtT(f.capacity_total) : f.capacity_allocated.toLocaleString()} />
-                <Mini label="Earned" value={fmtNpr(f.earned_usd)} />
+                <Mini label="Earned" value={fmtSol(f.earned_sol)} />
               </div>
 
               <div className="mt-5">

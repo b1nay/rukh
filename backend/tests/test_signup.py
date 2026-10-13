@@ -1,4 +1,4 @@
-from tests.conftest import auth, otp_token, signup
+from tests.conftest import FARMER_WALLET, auth, otp_token, signup
 
 
 def test_tour_operator_signup_returns_session(client, operator):
@@ -13,7 +13,7 @@ def test_farmer_requires_phone_and_is_pending(client):
     payload = {
         "category": "farmer",
         "account": {"full_name": "Sita Gurung", "password": "supersecret"},
-        "profile": {"district": "Kaski", "land_area": 12, "land_unit": "Ropani", "payout_method": "eSewa"},
+        "profile": {"district": "Kaski", "land_area": 12, "land_unit": "Ropani", "solana_wallet": FARMER_WALLET},
     }
     payload["otp_token"] = otp_token(client, "phone", "9841000000")
     assert client.post("/api/v1/signup", json=payload).status_code == 422
@@ -66,7 +66,7 @@ def test_otp_rejects_wrong_code_and_unverified_signup(client):
         "category": "farmer",
         "otp_token": "not-a-real-token",
         "account": {"full_name": "Sita Gurung", "phone": "9841000000", "password": "supersecret"},
-        "profile": {"district": "Kaski", "land_area": 12, "land_unit": "Ropani", "payout_method": "eSewa"},
+        "profile": {"district": "Kaski", "land_area": 12, "land_unit": "Ropani", "solana_wallet": FARMER_WALLET},
     }
     assert client.post("/api/v1/signup", json=payload).status_code == 400
 
@@ -75,10 +75,21 @@ def test_otp_token_is_bound_to_contact(client):
     token = otp_token(client, "phone", "9841000000")
     base = {
         "category": "farmer",
-        "profile": {"district": "Kaski", "land_area": 12, "land_unit": "Ropani", "payout_method": "eSewa"},
+        "profile": {"district": "Kaski", "land_area": 12, "land_unit": "Ropani", "solana_wallet": FARMER_WALLET},
     }
     other = {**base, "otp_token": token, "account": {"full_name": "X Y", "phone": "9841999999", "password": "supersecret"}}
     assert client.post("/api/v1/signup", json=other).status_code == 400  # verified a different number
 
     ok = {**base, "otp_token": token, "account": {"full_name": "Sita Gurung", "phone": "9841000000", "password": "supersecret"}}
     assert client.post("/api/v1/signup", json=ok).status_code == 201
+
+
+def test_landowner_needs_a_valid_solana_wallet(client):
+    account = {"full_name": "Hari Bista", "phone": "9841000009", "password": "supersecret"}
+    profile = {"district": "Kaski", "land_area": 5, "land_unit": "Ropani"}
+    for wallet in (None, "0OIl-not-base58-0OIl-not-base58-0OIl", "abc"):
+        bad = {**profile, **({"solana_wallet": wallet} if wallet else {})}
+        payload = {"category": "farmer", "account": account, "profile": bad, "otp_token": otp_token(client, "phone", "9841000009")}
+        assert client.post("/api/v1/signup", json=payload).status_code == 422
+    user = signup(client, "farmer", account, {**profile, "solana_wallet": FARMER_WALLET})
+    assert user["user"]["status"] == "pending_verification"

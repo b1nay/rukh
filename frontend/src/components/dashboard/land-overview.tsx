@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { fmtDate, fmtNpr, fmtT, fmtUsd } from "@/lib/format";
+import { fmtDate, fmtSol, fmtT } from "@/lib/format";
 import type { Field, LandSummary } from "@/lib/types";
 import { useApi, useSession } from "./session";
 import { Badge, ButtonLink, Card, Empty, ErrorNote, Loading, Meter, PageHeader, StatCard } from "./ui";
@@ -36,7 +36,7 @@ export function LandOverview() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard icon="💰" label="Total earned" value={fmtNpr(s.earned_usd)} sub={fmtUsd(s.earned_usd)} />
+            <StatCard icon="💰" label="Total earned" value={fmtSol(s.earned_sol)} sub="Paid to your Solana wallet" />
             <StatCard icon="🌳" label="Trees enrolled" value={s.trees.toLocaleString()} sub={`${s.fields} fields`} />
             <StatCard icon="☁️" label="Yearly capacity" value={fmtT(s.annual_capacity_t)} sub={`${fmtT(s.allocated_t)} sold this year`} />
             <StatCard icon="🌱" label="Planting slots" value={s.planting_slots.toLocaleString()} sub="new trees you can host" />
@@ -85,7 +85,7 @@ export function LandOverview() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-semibold text-brand">+{fmtNpr(e.landowner_usd)}</p>
+                        <p className="text-sm font-semibold text-brand">+{fmtSol(e.landowner_sol)}</p>
                         <Badge tone="gray">{e.impact_type === "plant" ? "Plant" : "Protect"}</Badge>
                       </div>
                     </li>

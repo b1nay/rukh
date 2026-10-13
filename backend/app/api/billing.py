@@ -1,14 +1,16 @@
 """Bills from Rukh. Climate Partners see and pay their own; admins see all."""
 
-import secrets
 from datetime import date, datetime, time, timezone
 
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import or_, select
 
+from app.catalog import fmt_sol, sol
+from app.core.config import settings
 from app.deps import DB, Admin, ClimatePartner
 from app.models import Invoice, Trip, User
-from app.schemas.billing import InvoiceList, InvoiceOut, InvoiceTotals, PayIn
+from app.schemas.billing import InvoiceList, InvoiceOut, InvoiceTotals, PayIn, SolanaIntent, SolanaTransfer
+from app.services import solana
 from app.services.billing import PAYMENT_METHODS, display_status
 from app.services.notify import admin_ids, notify
 
@@ -25,28 +27,29 @@ def invoice_out(inv: Invoice) -> InvoiceOut:
         request_id=inv.request_id,
         description=inv.description,
         lines=inv.lines,
-        subtotal_usd=inv.subtotal_usd,
-        fee_usd=inv.fee_usd,
-        total_usd=inv.total_usd,
+        subtotal_sol=inv.subtotal_sol,
+        fee_sol=inv.fee_sol,
+        total_sol=inv.total_sol,
         status=display_status(inv),
         issued_at=inv.issued_at,
         due_at=inv.due_at,
         paid_at=inv.paid_at,
         payment_method=PAYMENT_METHODS.get(inv.payment_method or "", inv.payment_method),
         payment_reference=inv.payment_reference,
+        payer_wallet=inv.payer_wallet,
     )
 
 
 def _totals(invoices: list[Invoice]) -> InvoiceTotals:
     live = [i for i in invoices if i.status != "void"]
-    paid = sum(i.total_usd for i in live if i.status == "paid")
-    billed = sum(i.total_usd for i in live)
+    paid = sum(i.total_sol for i in live if i.status == "paid")
+    billed = sum(i.total_sol for i in live)
     return InvoiceTotals(
         count=len(live),
-        billed_usd=round(billed, 2),
-        paid_usd=round(paid, 2),
-        outstanding_usd=round(billed - paid, 2),
-        overdue_usd=round(sum(i.total_usd for i in live if display_status(i) == "overdue"), 2),
+        billed_sol=sol(billed),
+        paid_sol=sol(paid),
+        outstanding_sol=sol(billed - paid),
+        overdue_sol=sol(sum(i.total_sol for i in live if display_status(i) == "overdue")),
     )
 
 
@@ -104,23 +107,52 @@ def get_invoice(invoice_id: int, user: ClimatePartner, db: DB) -> InvoiceOut:
     return invoice_out(_own_invoice(db, user, invoice_id))
 
 
-def _mark_paid(inv: Invoice, method: str) -> None:
+def _mark_paid(inv: Invoice, method: str, reference: str | None = None, payer: str | None = None) -> None:
     if inv.status != "unpaid":
         raise HTTPException(status.HTTP_409_CONFLICT, f"This invoice is already {inv.status}")
     inv.status = "paid"
     inv.paid_at = datetime.now(timezone.utc)
     inv.payment_method = method
-    inv.payment_reference = f"DEMO-{secrets.token_hex(4).upper()}"
+    inv.payment_reference = reference
+    inv.payer_wallet = payer
+
+
+def _intent(db: DB, inv: Invoice) -> SolanaIntent:
+    to = solana.treasury(db)
+    if not to:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Rukh hasn't set up its Solana treasury wallet yet. Try again later.")
+    amount = solana.lamports(inv.total_sol)
+    return SolanaIntent(
+        cluster=settings.solana_cluster,
+        memo=solana.invoice_memo(inv.number),
+        transfers=[SolanaTransfer(to=to, lamports=amount, amount_sol=inv.total_sol, label=inv.number)],
+    )
+
+
+@router.get("/climate/invoices/{invoice_id}/solana", response_model=SolanaIntent)
+def invoice_intent(invoice_id: int, user: ClimatePartner, db: DB) -> SolanaIntent:
+    """What to send, where, and with which memo. The wallet signs this in the browser."""
+    inv = _own_invoice(db, user, invoice_id)
+    if inv.status != "unpaid":
+        raise HTTPException(status.HTTP_409_CONFLICT, f"This invoice is already {inv.status}")
+    return _intent(db, inv)
 
 
 @router.post("/climate/invoices/{invoice_id}/pay", response_model=InvoiceOut)
 def pay_invoice(invoice_id: int, payload: PayIn, user: ClimatePartner, db: DB) -> InvoiceOut:
-    """Dummy checkout: no money moves. Swap in Stripe / Khalti / eSewa here."""
+    """Record a Solana payment after checking the transaction on chain."""
     inv = _own_invoice(db, user, invoice_id)
-    _mark_paid(inv, payload.method)
+    if inv.status != "unpaid":
+        raise HTTPException(status.HTTP_409_CONFLICT, f"This invoice is already {inv.status}")
+    intent = _intent(db, inv)
+    try:
+        proof = solana.verify_payment(payload.signature, {t.to: t.lamports for t in intent.transfers}, intent.memo)
+    except solana.PaymentError as e:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(e)) from None
+    _mark_paid(inv, "solana", proof.signature, proof.payer)
     notify(
         db, admin_ids(db), "invoice.paid", f"{user.display_name} paid {inv.number}",
-        f"${inv.total_usd:,.2f} by {PAYMENT_METHODS[payload.method]}", "/dashboard/invoices",
+        f"{fmt_sol(inv.total_sol)} on Solana", "/dashboard/invoices",
     )
     db.commit()
     return invoice_out(inv)
@@ -142,7 +174,7 @@ def all_invoices(
 @router.post("/admin/invoices/{invoice_id}/mark-paid", response_model=InvoiceOut)
 def admin_mark_paid(invoice_id: int, user: Admin, db: DB) -> InvoiceOut:
     inv = _own_invoice(db, user, invoice_id)
-    _mark_paid(inv, "bank_transfer")
-    notify(db, [inv.user_id], "invoice.paid", f"Payment received for {inv.number}", f"${inv.total_usd:,.2f}", "/dashboard/billing")
+    _mark_paid(inv, "manual")
+    notify(db, [inv.user_id], "invoice.paid", f"Payment received for {inv.number}", fmt_sol(inv.total_sol), "/dashboard/billing")
     db.commit()
     return invoice_out(inv)

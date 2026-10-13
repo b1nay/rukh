@@ -1,17 +1,17 @@
-"""Payments from Rukh to Land Partners, raised automatically when their trees are allocated."""
+"""Payments in SOL from Rukh to Land Partners, raised automatically when their trees are allocated."""
 
-import secrets
 from collections import defaultdict
 from datetime import datetime, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.catalog import sol
 from app.models import Allocation, AllocationRequest, Invoice, Payout, User
 from app.services.fieldmap import pick_trees
 from app.services.allocation import Pick
 
-DEFAULT_METHOD = "Bank transfer"
+METHOD = "Solana"
 
 
 def next_number(db: Session, year: int) -> str:
@@ -19,8 +19,9 @@ def next_number(db: Session, year: int) -> str:
     return f"PAY-{year}-{count + 1:04d}"
 
 
-def preferred_method(owner: User) -> str:
-    return (owner.profile or {}).get("payout_method") or DEFAULT_METHOD
+def wallet(owner: User) -> str | None:
+    """The Solana address the Land Partner is paid to."""
+    return (owner.profile or {}).get("solana_wallet")
 
 
 def issue_for_request(db: Session, req: AllocationRequest, allocations: list[Allocation], invoice: Invoice) -> list[Payout]:
@@ -37,7 +38,7 @@ def issue_for_request(db: Session, req: AllocationRequest, allocations: list[All
                 "field_name": a.field.name,
                 "trees": a.trees or pick_trees(Pick(a.field, a.tonnes)),
                 "tonnes": a.tonnes,
-                "amount": a.landowner_usd,
+                "amount": a.landowner_sol,
             }
             for a in allocs
         ]
@@ -47,8 +48,8 @@ def issue_for_request(db: Session, req: AllocationRequest, allocations: list[All
             request_id=req.id,
             invoice_id=invoice.id,
             lines=lines,
-            amount_usd=round(sum(a.landowner_usd for a in allocs), 2),
-            method=preferred_method(allocs[0].field.owner),
+            amount_sol=sol(sum(a.landowner_sol for a in allocs)),
+            method=METHOD,
         )
         db.add(payout)
         db.flush()  # so the next number counts this one
@@ -56,9 +57,9 @@ def issue_for_request(db: Session, req: AllocationRequest, allocations: list[All
     return payouts
 
 
-def mark_paid(payout: Payout, method: str | None = None) -> None:
+def mark_paid(payout: Payout, signature: str, to: str) -> None:
     payout.status = "paid"
     payout.paid_at = datetime.now(timezone.utc)
-    if method:
-        payout.method = method
-    payout.reference = f"DEMO-{secrets.token_hex(4).upper()}"
+    payout.method = METHOD
+    payout.reference = signature
+    payout.wallet = to

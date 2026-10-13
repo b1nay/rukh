@@ -14,6 +14,11 @@ services:
       RUKH_CORS_ORIGINS: '["http://localhost:3000", "http://localhost:3100"]'
       # true: replace the database in the volume with a fresh demo copy (the old one is kept as a .bak)
       RUKH_DEMO_RESET: ${RUKH_DEMO_RESET:-false}
+      # Payments settle in SOL. The RPC URL must be on the same cluster.
+      RUKH_SOLANA_CLUSTER: ${RUKH_SOLANA_CLUSTER:-devnet}
+      RUKH_SOLANA_RPC_URL: ${RUKH_SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      # Wallet that receives Climate Partner payments. Optional: the superadmin can set it on the Pay page.
+      RUKH_SOLANA_TREASURY: ${RUKH_SOLANA_TREASURY:-}
     volumes:
       - rukh-data:/data
     restart: unless-stopped

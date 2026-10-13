@@ -5,11 +5,11 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.catalog import IMPACT_TYPES
+from app.catalog import IMPACT_TYPES, sol
 from app.models import Allocation, AllocationRequest, Invoice
 
 PAYMENT_TERMS_DAYS = 14
-PAYMENT_METHODS = {"card": "Card", "bank_transfer": "Bank transfer", "khalti": "Khalti", "esewa": "eSewa"}
+PAYMENT_METHODS = {"solana": "Solana", "manual": "Marked paid by Rukh"}
 
 
 def _now() -> datetime:
@@ -32,13 +32,13 @@ def issue_for_request(db: Session, req: AllocationRequest, allocations: list[All
     name = IMPACT_TYPES[req.impact_type]["name"]
     tonnes = round(sum(a.tonnes for a in allocations), 3)
     trees = sum(a.trees for a in allocations)
-    subtotal = round(sum(a.amount_usd for a in allocations), 2)
-    fee = round(subtotal * req.fee_rate, 2)
+    subtotal = sol(sum(a.amount_sol for a in allocations))
+    fee = sol(subtotal * req.fee_rate)
     lines = [
         {
             "description": f"{name} · {req.trip.name}" + (f" · {trees} new trees" if trees else ""),
             "quantity": tonnes,
-            "unit": "t CO₂",
+            "unit": "t CO₂",  # unit_price and amount are in SOL
             "unit_price": req.price_per_tonne,
             "amount": subtotal,
         }
@@ -59,9 +59,9 @@ def issue_for_request(db: Session, req: AllocationRequest, allocations: list[All
         request_id=req.id,
         description=f"{name} for {req.trip.name}",
         lines=lines,
-        subtotal_usd=subtotal,
-        fee_usd=fee,
-        total_usd=round(subtotal + fee, 2),
+        subtotal_sol=subtotal,
+        fee_sol=fee,
+        total_sol=sol(subtotal + fee),
         issued_at=issued,
         due_at=issued + timedelta(days=PAYMENT_TERMS_DAYS),
     )

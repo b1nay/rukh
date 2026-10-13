@@ -43,7 +43,7 @@ def test_demo_fills_every_role(client):
 
     fields = get(land, "/land/fields")
     assert len(fields) == 4 and get(land, "/land/earnings")
-    assert get(land, "/land/summary")["earned_usd"] > 0
+    assert get(land, "/land/summary")["earned_sol"] > 0
 
     # every pending demo request can be allocated from the map
     for r in (r for r in requests if r["status"] == "pending"):

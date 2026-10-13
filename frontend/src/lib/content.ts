@@ -145,7 +145,7 @@ export function roundTripTonnes(km: number, includeNonCo2: boolean) {
 export const IMPACT_TYPES = {
   protect: {
     name: "Protect",
-    pricePerTonne: 18,
+    pricePerTonne: 0.1, // SOL
     tagline: "Pay for this year's measured growth of standing trees",
     points: [
       "Existing trees, verified by satellite",
@@ -156,7 +156,7 @@ export const IMPACT_TYPES = {
   },
   plant: {
     name: "Plant",
-    pricePerTonne: 34,
+    pricePerTonne: 0.19, // SOL
     tagline: "New trees planted for you, absorbing CO₂ over 30 years",
     points: [
       "New native trees on rented or enrolled land",
@@ -188,7 +188,7 @@ export const PLANS = [
   {
     id: "operator",
     name: "Operator",
-    price: "$79",
+    price: "0.45 SOL",
     cadence: "per month",
     platformFee: "7% platform fee",
     for: "Tour operators with steady bookings",
@@ -223,21 +223,21 @@ export const PACKAGES = [
     unit: "per traveler",
     detail: "London ↔ Kathmandu via Doha, about 1.6 t CO₂",
     trees: "4 new trees",
-    from: "$54",
+    from: "0.3 SOL",
   },
   {
     name: "Event Package",
     unit: "per 100 attendees",
     detail: "Mixed long-haul travel, about 180 t CO₂",
     trees: "9,000 tree-years protected",
-    from: "$3,240",
+    from: "18 SOL",
   },
   {
     name: "Office Package",
     unit: "per year",
     detail: "Staff flights for a 20-person team, about 60 t CO₂",
     trees: "120 new trees",
-    from: "$2,040",
+    from: "11.4 SOL",
   },
 ];
 

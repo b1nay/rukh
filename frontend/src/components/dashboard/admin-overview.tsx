@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { IMPACT_TYPES } from "@/lib/content";
-import { fmtDate, fmtT, fmtUsd } from "@/lib/format";
+import { fmtDate, fmtT, fmtSol } from "@/lib/format";
 import type { AdminSummary } from "@/lib/types";
 import { RequestStatusBadge } from "./request-status";
 import { useApi } from "./session";
@@ -26,10 +26,10 @@ export function AdminOverview() {
         }
       />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon="📥" label="Pending requests" value={String(data.pending_requests)} sub={`${fmtUsd(data.pending_usd)} waiting`} />
+        <StatCard icon="📥" label="Pending requests" value={String(data.pending_requests)} sub={`${fmtSol(data.pending_sol)} waiting`} />
         <StatCard icon="🌳" label="Protect capacity" value={fmtT(data.protect_available_t)} sub={`${data.plant_available_trees.toLocaleString()} planting slots`} />
-        <StatCard icon="🧾" label="Billed" value={fmtUsd(data.billed_usd)} sub={`${fmtUsd(data.outstanding_usd)} outstanding`} />
-        <StatCard icon="💼" label="Platform fees" value={fmtUsd(data.fees_usd)} sub={`${fmtT(data.allocated_t)} allocated`} />
+        <StatCard icon="🧾" label="Billed" value={fmtSol(data.billed_sol)} sub={`${fmtSol(data.outstanding_sol)} outstanding`} />
+        <StatCard icon="💼" label="Platform fees" value={fmtSol(data.fees_sol)} sub={`${fmtT(data.allocated_t)} allocated`} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
@@ -48,7 +48,7 @@ export function AdminOverview() {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{r.requester} · {r.trip_name}</p>
                       <p className="text-xs text-muted">
-                        #{r.id} · {fmtT(r.tonnes)} {IMPACT_TYPES[r.impact_type].name} · {fmtUsd(r.total_usd)} · {fmtDate(r.created_at)}
+                        #{r.id} · {fmtT(r.tonnes)} {IMPACT_TYPES[r.impact_type].name} · {fmtSol(r.total_sol)} · {fmtDate(r.created_at)}
                       </p>
                     </div>
                     <RequestStatusBadge status={r.status} />

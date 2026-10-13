@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 InvoiceStatus = Literal["unpaid", "paid", "overdue", "void"]
 
@@ -23,23 +23,24 @@ class InvoiceOut(BaseModel):
     request_id: int | None
     description: str
     lines: list[InvoiceLine]
-    subtotal_usd: float
-    fee_usd: float
-    total_usd: float
+    subtotal_sol: float
+    fee_sol: float
+    total_sol: float
     status: InvoiceStatus
     issued_at: datetime
     due_at: datetime
     paid_at: datetime | None
     payment_method: str | None
-    payment_reference: str | None
+    payment_reference: str | None  # Solana transaction signature
+    payer_wallet: str | None
 
 
 class InvoiceTotals(BaseModel):
     count: int
-    billed_usd: float
-    paid_usd: float
-    outstanding_usd: float
-    overdue_usd: float
+    billed_sol: float
+    paid_sol: float
+    outstanding_sol: float
+    overdue_sol: float
 
 
 class InvoiceList(BaseModel):
@@ -48,4 +49,19 @@ class InvoiceList(BaseModel):
 
 
 class PayIn(BaseModel):
-    method: Literal["card", "bank_transfer", "khalti", "esewa"]
+    signature: str = Field(min_length=64, max_length=100)  # the confirmed Solana transaction
+
+
+class SolanaTransfer(BaseModel):
+    to: str
+    lamports: int
+    amount_sol: float
+    label: str  # invoice or payout number
+
+
+class SolanaIntent(BaseModel):
+    """A payment for the browser wallet to sign: one transfer per recipient plus a memo."""
+
+    cluster: str
+    memo: str
+    transfers: list[SolanaTransfer]

@@ -8,7 +8,7 @@ import { useApi } from "@/components/dashboard/session";
 import { Badge, Card, ErrorNote, FieldLabel, inputCls, Loading, Meter, PageHeader, StatCard } from "@/components/dashboard/ui";
 import { api } from "@/lib/api";
 import { BUFFER_SHARE } from "@/lib/content";
-import { fmtDate, fmtNpr, fmtT, osmLink } from "@/lib/format";
+import { fmtDate, fmtSol, fmtT, osmLink } from "@/lib/format";
 import type { FieldDetail, Species, TreeGroup, TreeGroupInput } from "@/lib/types";
 
 const SPANS = [5, 10, 20, 30] as const;
@@ -75,7 +75,7 @@ function FieldPage() {
           value={fmtT(f.carbon.annual_gross_t)}
           sub={existing ? `${fmtT(f.carbon.annual_sellable_t)} sellable after ${BUFFER_SHARE * 100}% buffer` : "by the trees planted so far"}
         />
-        <StatCard icon="💰" label="Earned from this field" value={fmtNpr(f.earned_usd)} sub={`${f.allocations.length} sale${f.allocations.length === 1 ? "" : "s"}`} />
+        <StatCard icon="💰" label="Earned from this field" value={fmtSol(f.earned_sol)} sub={`${f.allocations.length} sale${f.allocations.length === 1 ? "" : "s"}`} />
       </div>
 
       <Card className="mt-6 p-6">
@@ -175,7 +175,7 @@ function FieldPage() {
           {existing ? (
             <>
               <Figure label="Sellable to Climate Partners" value={fmtT(f.projection.sellable_t)} />
-              <Figure label="You could earn" value={fmtNpr(f.projection.earnings_usd)} sub="if every sellable tonne is sold" />
+              <Figure label="You could earn" value={fmtSol(f.projection.earnings_sol)} sub="if every sellable tonne is sold" />
             </>
           ) : (
             <>
@@ -299,7 +299,7 @@ function Allocations({ f }: { f: FieldDetail }) {
           {f.sold_by_year.map((y) => (
             <span key={y.year} className="rounded-lg border border-border px-3 py-1.5 text-xs">
               <span className="font-medium">{y.year}</span>
-              <span className="text-muted"> · {existing ? fmtT(y.tonnes) : `${y.trees} trees`} · {fmtNpr(y.landowner_usd)}</span>
+              <span className="text-muted"> · {existing ? fmtT(y.tonnes) : `${y.trees} trees`} · {fmtSol(y.landowner_sol)}</span>
             </span>
           ))}
         </div>
@@ -323,7 +323,7 @@ function Allocations({ f }: { f: FieldDetail }) {
                 ) : a.payout_status === "pending" ? (
                   <Badge tone="amber">Payment pending</Badge>
                 ) : null}
-                <span className="font-semibold text-brand">+{fmtNpr(a.landowner_usd)}</span>
+                <span className="font-semibold text-brand">+{fmtSol(a.landowner_sol)}</span>
               </div>
             </li>
           ))}

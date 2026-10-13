@@ -13,7 +13,7 @@ from math import ceil
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.catalog import IMPACT_TYPES, LANDOWNER_SHARE
+from app.catalog import IMPACT_TYPES, LANDOWNER_SHARE, sol
 from app.models import Allocation, Field, Trip
 from app.services.inventory import sellable_tonnes
 from app.services.sequestration import NEW_TREE_LIFETIME_TONNES
@@ -99,7 +99,7 @@ def apply(
     db: Session, trip: Trip, impact_type: str, year: int, picks: list[Pick], request_id: int | None = None
 ) -> list[Allocation]:
     """Write allocations after checking each field's capacity and the trip's open tonnes. Caller commits."""
-    price = IMPACT_TYPES[impact_type]["price_per_tonne_usd"]
+    price = IMPACT_TYPES[impact_type]["price_per_tonne_sol"]
     remaining = remaining_tonnes(trip)
     created: list[Allocation] = []
     for pick in picks:
@@ -120,7 +120,7 @@ def apply(
             tonnes = min(pick.tonnes, cap.available - used, remaining)
         if tonnes < EPSILON_T:
             raise AllocationError("Those picks cover more than the trip's open tonnes")
-        amount = round(tonnes * price, 2)
+        amount = sol(tonnes * price)
         alloc = Allocation(
             trip_id=trip.id,
             request_id=request_id,
@@ -129,8 +129,8 @@ def apply(
             year=year,
             tonnes=round(tonnes, 3),
             trees=pick.trees if impact_type == "plant" else 0,
-            amount_usd=amount,
-            landowner_usd=round(amount * LANDOWNER_SHARE, 2),
+            amount_sol=amount,
+            landowner_sol=sol(amount * LANDOWNER_SHARE),
         )
         db.add(alloc)
         trip.allocations.append(alloc)

@@ -206,10 +206,10 @@ class AllocationRequest(Base):
     year: Mapped[int] = mapped_column(Integer)
     tonnes: Mapped[float] = mapped_column(Float)
     price_per_tonne: Mapped[float] = mapped_column(Float)
-    subtotal_usd: Mapped[float] = mapped_column(Float)
+    subtotal_sol: Mapped[float] = mapped_column(Float)
     fee_rate: Mapped[float] = mapped_column(Float)
-    fee_usd: Mapped[float] = mapped_column(Float)
-    total_usd: Mapped[float] = mapped_column(Float)
+    fee_sol: Mapped[float] = mapped_column(Float)
+    total_sol: Mapped[float] = mapped_column(Float)
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     note: Mapped[str | None] = mapped_column(String(1000))
     admin_note: Mapped[str | None] = mapped_column(String(1000))
@@ -223,9 +223,9 @@ class AllocationRequest(Base):
 
 
 class Invoice(Base):
-    """A bill from Rukh to a Climate Partner, issued when trees are allocated.
+    """A bill from Rukh to a Climate Partner in SOL, issued when trees are allocated.
 
-    status: unpaid | paid | void. "Overdue" is derived (unpaid and past due_at).
+    Paid on Solana to the treasury wallet. status: unpaid | paid | void. "Overdue" is derived (unpaid and past due_at).
     """
 
     __tablename__ = "invoices"
@@ -237,15 +237,16 @@ class Invoice(Base):
     request_id: Mapped[int | None] = mapped_column(ForeignKey("allocation_requests.id", ondelete="SET NULL"), unique=True)
     description: Mapped[str] = mapped_column(String(300))
     lines: Mapped[list[dict[str, Any]]] = mapped_column(JSON)  # [{description, quantity, unit, unit_price, amount}]
-    subtotal_usd: Mapped[float] = mapped_column(Float)
-    fee_usd: Mapped[float] = mapped_column(Float)
-    total_usd: Mapped[float] = mapped_column(Float)
+    subtotal_sol: Mapped[float] = mapped_column(Float)
+    fee_sol: Mapped[float] = mapped_column(Float)
+    total_sol: Mapped[float] = mapped_column(Float)
     status: Mapped[str] = mapped_column(String(10), default="unpaid", index=True)
     issued_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=_now)
     due_at: Mapped[datetime] = mapped_column(UTCDateTime())
     paid_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
     payment_method: Mapped[str | None] = mapped_column(String(30))
-    payment_reference: Mapped[str | None] = mapped_column(String(80))
+    payment_reference: Mapped[str | None] = mapped_column(String(100))  # Solana transaction signature
+    payer_wallet: Mapped[str | None] = mapped_column(String(64))
 
     user: Mapped[User] = relationship()
     trip: Mapped["Trip | None"] = relationship()
@@ -291,8 +292,8 @@ class Allocation(Base):
     year: Mapped[int] = mapped_column(Integer)
     tonnes: Mapped[float] = mapped_column(Float)
     trees: Mapped[int] = mapped_column(Integer, default=0)  # new trees (plant only)
-    amount_usd: Mapped[float] = mapped_column(Float)
-    landowner_usd: Mapped[float] = mapped_column(Float)
+    amount_sol: Mapped[float] = mapped_column(Float)
+    landowner_sol: Mapped[float] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=_now)
 
     trip: Mapped[Trip] = relationship(back_populates="allocations")
@@ -300,9 +301,9 @@ class Allocation(Base):
 
 
 class Payout(Base):
-    """What Rukh owes one Land Partner for the trees allocated to one request.
+    """What Rukh owes one Land Partner in SOL for the trees allocated to one request.
 
-    Created automatically on allocation. status: pending | paid.
+    Created automatically on allocation and paid to the owner's Solana wallet. status: pending | paid.
     """
 
     __tablename__ = "payouts"
@@ -313,13 +314,24 @@ class Payout(Base):
     request_id: Mapped[int | None] = mapped_column(ForeignKey("allocation_requests.id", ondelete="SET NULL"), index=True)
     invoice_id: Mapped[int | None] = mapped_column(ForeignKey("invoices.id", ondelete="SET NULL"), index=True)
     lines: Mapped[list[dict[str, Any]]] = mapped_column(JSON)  # [{field_id, field_name, trees, tonnes, amount}]
-    amount_usd: Mapped[float] = mapped_column(Float)
+    amount_sol: Mapped[float] = mapped_column(Float)
     status: Mapped[str] = mapped_column(String(10), default="pending", index=True)
     method: Mapped[str | None] = mapped_column(String(40))
-    reference: Mapped[str | None] = mapped_column(String(80))
+    reference: Mapped[str | None] = mapped_column(String(100))  # Solana transaction signature
+    wallet: Mapped[str | None] = mapped_column(String(64))  # where it was sent
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=_now)
     paid_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
 
     owner: Mapped[User] = relationship()
     request: Mapped["AllocationRequest | None"] = relationship()
     invoice: Mapped["Invoice | None"] = relationship()
+
+
+class PlatformSetting(Base):
+    """Settings the superadmin changes in the app, such as the Solana treasury wallet."""
+
+    __tablename__ = "platform_settings"
+
+    key: Mapped[str] = mapped_column(String(60), primary_key=True)
+    value: Mapped[str | None] = mapped_column(String(500))
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=_now, onupdate=_now)

@@ -5,9 +5,10 @@ the `category` discriminator. Field names match frontend/src/lib/signup-fields.t
 from datetime import date, datetime
 from typing import Annotated, Literal, Union
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl, field_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field, HttpUrl, field_validator
 
 from app.catalog import Side
+from app.services.solana import is_address
 
 
 class _Strict(BaseModel):
@@ -17,6 +18,15 @@ class _Strict(BaseModel):
 Name = Annotated[str, Field(min_length=2, max_length=160)]
 Count = Annotated[int, Field(ge=0)]
 Positive = Annotated[float, Field(gt=0)]
+
+
+def _solana_address(v: str) -> str:
+    if not is_address(v):
+        raise ValueError("enter a Solana wallet address (32–44 letters and numbers)")
+    return v
+
+
+SolanaAddress = Annotated[str, Field(min_length=32, max_length=44), AfterValidator(_solana_address)]
 
 
 class Account(_Strict):
@@ -78,9 +88,6 @@ class IndividualProfile(_Strict):
 
 # --- Landowner profiles ----------------------------------------------------
 
-PayoutMethod = Literal["eSewa", "Khalti", "Bank transfer", "Through cooperative"]
-
-
 class FarmerProfile(_Strict):
     district: Name
     municipality: str | None = None
@@ -89,7 +96,7 @@ class FarmerProfile(_Strict):
     existing_trees: Count | None = None
     open_to_planting: Literal["Yes", "Maybe", "No"] | None = None
     species: list[str] = []
-    payout_method: PayoutMethod
+    solana_wallet: SolanaAddress  # payments are sent here in SOL
 
 
 class CommunityForestProfile(_Strict):
@@ -99,7 +106,7 @@ class CommunityForestProfile(_Strict):
     area_ha: Positive
     households: Count | None = None
     species: list[str] = []
-    payout_method: Literal["Bank transfer", "Through cooperative"]
+    solana_wallet: SolanaAddress
 
 
 class CooperativeProfile(_Strict):
@@ -109,6 +116,7 @@ class CooperativeProfile(_Strict):
     members: Count | None = None
     plots: Count | None = None
     crops: list[str] = []
+    solana_wallet: SolanaAddress
 
 
 # --- Requests --------------------------------------------------------------

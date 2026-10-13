@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { fmtDate, fmtT, fmtUsd } from "@/lib/format";
+import { fmtDate, fmtT, fmtSol } from "@/lib/format";
 import type { ClimateSummary, Itinerary } from "@/lib/types";
 import { CoverageChart } from "./coverage-chart";
 import { DepartureFlow, ItineraryCard } from "./departure";
@@ -59,7 +59,7 @@ export function ClimateOverview() {
               value={data.new_trees.toLocaleString()}
               sub={`new trees · ${data.tree_years.toLocaleString()} tree-years protected`}
             />
-            <StatCard icon="💳" label="Spend" value={fmtUsd(data.spend_usd)} sub="Protect + Plant" />
+            <StatCard icon="💳" label="Spend" value={fmtSol(data.spend_sol)} sub="Protect + Plant" />
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr]">

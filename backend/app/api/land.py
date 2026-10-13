@@ -3,10 +3,11 @@ from datetime import date
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
-from app.catalog import USD_TO_NPR
+from app.catalog import sol
 from app.deps import DB, LandPartner
 from app.models import Allocation, Field, Payout, TreeGroup
-from app.schemas.land import EarningOut, FieldIn, FieldOut, LandSummary
+from app.schemas.land import EarningOut, FieldIn, FieldOut, LandSummary, WalletIn, WalletOut
+from app.services import solana
 from app.services.allocation import field_capacity
 from app.services.sequestration import PLANTING_DENSITY_PER_HA, SPECIES
 
@@ -15,7 +16,7 @@ router = APIRouter(prefix="/land", tags=["land partner"])
 
 def _field_out(db: DB, f: Field) -> FieldOut:
     cap = field_capacity(db, f, date.today().year)
-    earned = sum(a.landowner_usd for a in db.scalars(select(Allocation).where(Allocation.field_id == f.id)))
+    earned = sum(a.landowner_sol for a in db.scalars(select(Allocation).where(Allocation.field_id == f.id)))
     return FieldOut(
         id=f.id,
         name=f.name,
@@ -34,7 +35,7 @@ def _field_out(db: DB, f: Field) -> FieldOut:
         capacity_total=round(cap.total, 3),
         capacity_allocated=round(cap.allocated, 3),
         capacity_available=round(cap.available, 3),
-        earned_usd=round(earned, 2),
+        earned_sol=sol(earned),
     )
 
 
@@ -63,7 +64,7 @@ def _earning_out(a: Allocation, payouts: dict[int, str]) -> EarningOut:
         impact_type=a.impact_type,
         tonnes=a.tonnes,
         trees=a.trees,
-        landowner_usd=a.landowner_usd,
+        landowner_sol=a.landowner_sol,
         payout_status=payouts.get(a.request_id) if a.request_id else None,
         created_at=a.created_at,
     )
@@ -74,15 +75,14 @@ def summary(user: LandPartner, db: DB) -> LandSummary:
     fields = [_field_out(db, f) for f in db.scalars(select(Field).where(Field.owner_id == user.id))]
     earnings = _earnings(db, user.id)
     year = date.today().year
-    earned = sum(a.landowner_usd for a in earnings)
+    earned = sum(a.landowner_sol for a in earnings)
     return LandSummary(
         fields=len(fields),
         trees=sum(f.tree_count for f in fields if f.kind == "existing"),
         planting_slots=sum(int(f.capacity_total) for f in fields if f.kind == "planting"),
         annual_capacity_t=round(sum(f.capacity_total for f in fields if f.kind == "existing"), 2),
         allocated_t=round(sum(a.tonnes for a in earnings if a.year == year), 2),
-        earned_usd=round(earned, 2),
-        earned_npr=round(earned * USD_TO_NPR),
+        earned_sol=sol(earned),
         recent_earnings=[_earning_out(a, _payout_status(db, user.id)) for a in earnings[:8]],
     )
 
@@ -144,3 +144,14 @@ def get_field(field_id: int, user: LandPartner, db: DB) -> FieldOut:
 def earnings(user: LandPartner, db: DB) -> list[EarningOut]:
     payouts = _payout_status(db, user.id)
     return [_earning_out(a, payouts) for a in _earnings(db, user.id)]
+
+
+@router.put("/wallet", response_model=WalletOut)
+def set_wallet(payload: WalletIn, user: LandPartner, db: DB) -> WalletOut:
+    """The Solana address Rukh pays this Land Partner to. Payments already sent are unaffected."""
+    address = payload.address.strip()
+    if not solana.is_address(address):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "That isn't a Solana wallet address")
+    user.profile = {**(user.profile or {}), "solana_wallet": address}
+    db.commit()
+    return WalletOut(wallet=address)

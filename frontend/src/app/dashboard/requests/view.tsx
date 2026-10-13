@@ -7,7 +7,7 @@ import { RoleOnly } from "@/components/dashboard/shell";
 import { useApi } from "@/components/dashboard/session";
 import { Card, Empty, ErrorNote, Loading, PageHeader } from "@/components/dashboard/ui";
 import { IMPACT_TYPES } from "@/lib/content";
-import { fmtDate, fmtT, fmtUsd } from "@/lib/format";
+import { fmtDate, fmtT, fmtSol } from "@/lib/format";
 import type { AllocationRequest } from "@/lib/types";
 
 const TABS = [
@@ -66,7 +66,7 @@ function Requests() {
                     <td className="px-4 py-3">{r.trip_name}</td>
                     <td className="px-4 py-3">{IMPACT_TYPES[r.impact_type].name}</td>
                     <td className="px-4 py-3 tabular-nums">{fmtT(r.tonnes)}</td>
-                    <td className="px-4 py-3 tabular-nums">{fmtUsd(r.total_usd)}</td>
+                    <td className="whitespace-nowrap px-4 py-3 tabular-nums">{fmtSol(r.total_sol)}</td>
                     <td className="px-4 py-3 text-muted">{fmtDate(r.created_at)}</td>
                     <td className="px-4 py-3"><RequestStatusBadge status={r.status} /></td>
                     <td className="px-4 py-3 text-right">

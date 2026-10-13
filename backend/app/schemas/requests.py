@@ -20,10 +20,10 @@ class RequestOut(BaseModel):
     year: int
     tonnes: float
     price_per_tonne: float
-    subtotal_usd: float
+    subtotal_sol: float
     fee_rate: float
-    fee_usd: float
-    total_usd: float
+    fee_sol: float
+    total_sol: float
     status: RequestStatus
     note: str | None
     admin_note: str | None

@@ -51,7 +51,7 @@ class ProjectionOut(BaseModel):
     years: int
     total_t: float
     sellable_t: float
-    earnings_usd: float  # landowner share if every sellable tonne is sold at the Protect price
+    earnings_sol: float  # landowner share if every sellable tonne is sold at the Protect price
     unplanted_trees: int  # reserved slots counted as seedlings (planting land)
     rows: list[ProjectionRow]
 
@@ -64,7 +64,7 @@ class FieldAllocationOut(BaseModel):
     year: int
     tonnes: float
     trees: int
-    landowner_usd: float
+    landowner_sol: float
     payout_number: str | None
     payout_status: Literal["pending", "paid"] | None
     created_at: datetime
@@ -74,7 +74,7 @@ class SoldYear(BaseModel):
     year: int
     tonnes: float
     trees: int
-    landowner_usd: float
+    landowner_sol: float
 
 
 class FieldDetail(FieldOut):
@@ -95,22 +95,22 @@ class ReceivedPayout(BaseModel):
     lines: list[PayoutLine]
     trees: int
     tonnes: float
-    amount_usd: float
-    amount_npr: float
+    amount_sol: float
     status: Literal["pending", "paid"]
     method: str | None
-    reference: str | None
+    reference: str | None  # Solana transaction signature
+    wallet: str | None
     created_at: datetime
     paid_at: datetime | None
 
 
 class PaymentTotals(BaseModel):
-    received_usd: float
+    received_sol: float
     received_count: int
-    pending_usd: float
+    pending_sol: float
     pending_count: int
     last_paid_at: datetime | None
-    method: str  # where payments go by default
+    wallet: str | None  # the Solana address payments go to
 
 
 class PaymentsOut(BaseModel):

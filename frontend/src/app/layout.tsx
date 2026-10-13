@@ -11,7 +11,7 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "Rukh — Verified trees in Nepal",
   description:
-    "Measure travel emissions and fund specific, satellite-verified trees in Nepal. Landowners get paid to keep them standing.",
+    "Measure travel emissions and fund specific, satellite-verified trees in Nepal, paid in SOL on Solana. Landowners get paid to keep them standing.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

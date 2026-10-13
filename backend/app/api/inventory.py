@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select
 
 from app.api.land import _field_out
-from app.catalog import IMPACT_TYPES, LANDOWNER_SHARE, USD_TO_NPR
+from app.catalog import IMPACT_TYPES, LANDOWNER_SHARE, sol
 from app.deps import DB, LandPartner
 from app.models import Allocation, Field, Payout, TreeGroup, User
 from app.schemas.inventory import (
@@ -25,7 +25,7 @@ from app.schemas.inventory import (
 )
 from app.services import inventory
 from app.services.allocation import EPSILON_T, Capacity, field_capacity
-from app.services.payouts import preferred_method
+from app.services.payouts import wallet
 from app.services.sequestration import SPECIES, TreeStand, annual_tonnes, project, stored_kg_per_tree
 
 router = APIRouter(prefix="/land", tags=["land partner"])
@@ -67,12 +67,12 @@ def _projection(field: Field, cap: Capacity, stands: list[TreeStand], years: int
             stands = [*stands, TreeStand(field.species, unplanted, 0)]
     rows = project(stands, date.today().year, years)
     sellable = sum(r.sellable_t for r in rows)
-    earnings = sellable * IMPACT_TYPES["protect"]["price_per_tonne_usd"] * LANDOWNER_SHARE if field.kind == "existing" else 0
+    earnings = sellable * IMPACT_TYPES["protect"]["price_per_tonne_sol"] * LANDOWNER_SHARE if field.kind == "existing" else 0
     return ProjectionOut(
         years=years,
         total_t=round(rows[-1].cumulative_t, 2),
         sellable_t=round(sellable, 2),
-        earnings_usd=round(earnings, 2),
+        earnings_sol=sol(earnings),
         unplanted_trees=unplanted,
         rows=[ProjectionRow(**r.__dict__) for r in rows],
     )
@@ -88,13 +88,13 @@ def _detail(db: DB, field: Field, years: int) -> FieldDetail:
 
     allocs = list(db.scalars(select(Allocation).where(Allocation.field_id == field.id).order_by(Allocation.created_at.desc())))
     payouts = {p.request_id: p for p in db.scalars(select(Payout).where(Payout.owner_id == field.owner_id)) if p.request_id}
-    by_year: dict[int, SoldYear] = defaultdict(lambda: SoldYear(year=0, tonnes=0, trees=0, landowner_usd=0))
+    by_year: dict[int, SoldYear] = defaultdict(lambda: SoldYear(year=0, tonnes=0, trees=0, landowner_sol=0))
     for a in allocs:
         row = by_year[a.year]
         row.year = a.year
         row.tonnes = round(row.tonnes + a.tonnes, 3)
         row.trees += a.trees
-        row.landowner_usd = round(row.landowner_usd + a.landowner_usd, 2)
+        row.landowner_sol = sol(row.landowner_sol + a.landowner_sol)
 
     return FieldDetail(
         **_field_out(db, field).model_dump(),
@@ -117,7 +117,7 @@ def _detail(db: DB, field: Field, years: int) -> FieldDetail:
                 year=a.year,
                 tonnes=a.tonnes,
                 trees=a.trees,
-                landowner_usd=a.landowner_usd,
+                landowner_sol=a.landowner_sol,
                 payout_number=payouts[a.request_id].number if a.request_id in payouts else None,
                 payout_status=payouts[a.request_id].status if a.request_id in payouts else None,
                 created_at=a.created_at,
@@ -221,12 +221,12 @@ def payments(user: LandPartner, db: DB) -> PaymentsOut:
     pending = [p for p in rows if p.status == "pending"]
     return PaymentsOut(
         totals=PaymentTotals(
-            received_usd=round(sum(p.amount_usd for p in paid), 2),
+            received_sol=sol(sum(p.amount_sol for p in paid)),
             received_count=len(paid),
-            pending_usd=round(sum(p.amount_usd for p in pending), 2),
+            pending_sol=sol(sum(p.amount_sol for p in pending)),
             pending_count=len(pending),
             last_paid_at=max((p.paid_at for p in paid if p.paid_at), default=None),
-            method=preferred_method(user),
+            wallet=wallet(user),
         ),
         items=[
             ReceivedPayout(
@@ -237,11 +237,11 @@ def payments(user: LandPartner, db: DB) -> PaymentsOut:
                 lines=p.lines,
                 trees=sum(line["trees"] for line in p.lines),
                 tonnes=round(sum(line["tonnes"] for line in p.lines), 3),
-                amount_usd=p.amount_usd,
-                amount_npr=round(p.amount_usd * USD_TO_NPR),
+                amount_sol=p.amount_sol,
                 status=p.status,
                 method=p.method,
                 reference=p.reference,
+                wallet=p.wallet,
                 created_at=p.created_at,
                 paid_at=p.paid_at,
             )

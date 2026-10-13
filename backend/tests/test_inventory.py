@@ -3,7 +3,7 @@ from datetime import date
 import pytest
 
 from app.services.sequestration import TreeStand, project, stored_kg_per_tree
-from tests.conftest import auth
+from tests.conftest import FARMER_WALLET, OTHER_WALLET, auth
 from tests.test_dashboards import add_field, new_trip
 from tests.test_payouts import _allocate_suggested
 from tests.test_requests import request_trees
@@ -36,7 +36,7 @@ def test_field_inventory_sets_capacity(client, farmer):
     assert detail["carbon"]["annual_sellable_t"] == pytest.approx(17.0)
     assert detail["carbon"]["measured_share"] == 1
     assert detail["projection"]["years"] == 20 and len(detail["projection"]["rows"]) == 20
-    assert detail["projection"]["earnings_usd"] > 0
+    assert detail["projection"]["earnings_sol"] > 0
 
     # mixed planting: add 200 sal, so capacity grows and utis stays the main species
     res = client.post(f"/api/v1/land/fields/{field['id']}/trees", json={"species": "sal", "count": 200, "age_years": 30}, headers=h)
@@ -122,14 +122,14 @@ def test_inventory_is_private(client, farmer):
     other = signup(
         client, "farmer",
         {"full_name": "Ram Thapa", "phone": "9841000001", "password": "supersecret"},
-        {"district": "Gorkha", "land_area": 8, "land_unit": "Ropani", "payout_method": "Khalti"},
+        {"district": "Gorkha", "land_area": 8, "land_unit": "Ropani", "solana_wallet": OTHER_WALLET},
     )
     assert client.get(f"/api/v1/land/fields/{field['id']}/detail", headers=auth(other["token"])).status_code == 404
     res = client.post(f"/api/v1/land/fields/{field['id']}/trees", json={"species": "sal", "count": 1}, headers=auth(other["token"]))
     assert res.status_code == 404
 
 
-def test_landowner_sees_payments_received(client, operator, farmer, admin):
+def test_landowner_sees_payments_received(client, operator, farmer, admin, chain):
     add_field(client, farmer["token"], tree_count=60, area_ha=0.2)
     trip = new_trip(client, operator["token"])
     req = request_trees(client, operator["token"], trip["id"], impact="protect")
@@ -137,17 +137,19 @@ def test_landowner_sees_payments_received(client, operator, farmer, admin):
 
     h = auth(farmer["token"])
     pay = client.get("/api/v1/land/payouts", headers=h).json()
-    assert pay["totals"]["pending_count"] == 1 and pay["totals"]["received_usd"] == 0
-    assert pay["totals"]["method"] == "eSewa"
+    assert pay["totals"]["pending_count"] == 1 and pay["totals"]["received_sol"] == 0
+    assert pay["totals"]["wallet"] == FARMER_WALLET
     item = pay["items"][0]
     assert item["client"] == "Himalayan Trails" and item["trees"] > 0 and item["status"] == "pending"
 
-    paid = client.post("/api/v1/admin/payouts/pay", json={"ids": res["payout_ids"]}, headers=auth(admin["token"]))
+    intent = client.post("/api/v1/admin/payouts/solana", json={"ids": res["payout_ids"]}, headers=auth(admin["token"])).json()
+    sig = chain.pay(intent)
+    paid = client.post("/api/v1/admin/payouts/pay", json={"ids": res["payout_ids"], "signature": sig}, headers=auth(admin["token"]))
     assert paid.status_code == 200, paid.text
     pay = client.get("/api/v1/land/payouts", headers=h).json()
-    assert pay["totals"]["received_count"] == 1 and pay["totals"]["pending_usd"] == 0
-    assert pay["totals"]["received_usd"] == pytest.approx(item["amount_usd"])
-    assert pay["items"][0]["reference"].startswith("DEMO-") and pay["totals"]["last_paid_at"]
+    assert pay["totals"]["received_count"] == 1 and pay["totals"]["pending_sol"] == 0
+    assert pay["totals"]["received_sol"] == pytest.approx(item["amount_sol"])
+    assert pay["items"][0]["reference"] == sig and pay["items"][0]["wallet"] == FARMER_WALLET and pay["totals"]["last_paid_at"]
 
 
 def test_editing_enrollment_summary_replaces_it(client, farmer):

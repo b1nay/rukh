@@ -4,6 +4,7 @@ from datetime import date
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import func, or_, select
 
+from app.catalog import sol
 from app.deps import DB, ClimatePartner
 from app.models import Itinerary, Traveler, Trip, User
 from app.api.requests import request_out
@@ -177,7 +178,7 @@ def _detail(trip: Trip) -> TripDetail:
         shared_kg_per_person=trip.shared_kg_per_person,
         by_category=_by_category(trip),
         traveler_list=[TravelerOut.model_validate(t) for t in trip.travelers],
-        spend_usd=round(sum(a.amount_usd for a in trip.allocations), 2),
+        spend_sol=sol(sum(a.amount_sol for a in trip.allocations)),
         requests=[request_out(r) for r in trip.requests],
         allocations=[
             AllocationOut(
@@ -187,7 +188,7 @@ def _detail(trip: Trip) -> TripDetail:
                 year=a.year,
                 tonnes=a.tonnes,
                 trees=a.trees,
-                amount_usd=a.amount_usd,
+                amount_sol=a.amount_sol,
                 field_id=a.field.id,
                 field_name=a.field.name,
                 district=a.field.district,
@@ -226,7 +227,7 @@ def summary(user: ClimatePartner, db: DB) -> ClimateSummary:
         covered_t=round(sum(a.tonnes for a in allocations), 2),
         new_trees=sum(a.trees for a in allocations),
         tree_years=round(protect_t * 1000 / 20),  # ~20 kg per tree-year
-        spend_usd=round(sum(a.amount_usd for a in allocations), 2),
+        spend_sol=sol(sum(a.amount_sol for a in allocations)),
         monthly=[MonthPoint(month=m, co2_t=round(v[0], 2), covered_t=round(v[1], 2)) for m, v in sorted(monthly.items())][-12:],
         recent_trips=[_summary(t) for t in trips[:5]],
         top_itineraries=ranked_itineraries(db, user)[:4],

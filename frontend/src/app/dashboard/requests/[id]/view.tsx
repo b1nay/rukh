@@ -10,7 +10,7 @@ import { useApi } from "@/components/dashboard/session";
 import { Card, ErrorNote, Loading, PageHeader, StatCard } from "@/components/dashboard/ui";
 import { api } from "@/lib/api";
 import { ALL_CATEGORIES, IMPACT_TYPES } from "@/lib/content";
-import { fmtDate, fmtT, fmtUsd } from "@/lib/format";
+import { fmtDate, fmtT, fmtSol } from "@/lib/format";
 import { CATEGORIES, fmtKg } from "@/lib/itinerary";
 import type { RequestDetail } from "@/lib/types";
 
@@ -57,7 +57,7 @@ function Request() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon="☁️" label="Requested" value={fmtT(r.tonnes)} sub={`${IMPACT_TYPES[r.impact_type].name} · $${r.price_per_tonne}/t`} />
-        <StatCard icon="🧾" label="Bill" value={fmtUsd(r.total_usd)} sub={`${fmtUsd(r.subtotal_usd)} + ${Math.round(r.fee_rate * 100)}% fee`} />
+        <StatCard icon="🧾" label="Bill" value={fmtSol(r.total_sol)} sub={`${fmtSol(r.subtotal_sol)} + ${Math.round(r.fee_rate * 100)}% fee`} />
         <StatCard icon="👥" label="Travelers" value={String(trip.travelers)} sub={`${fmtT(trip.co2_t)} total trip CO₂`} />
         <StatCard icon="🏢" label="Client" value={r.requester} sub={[category, data.requester_email].filter(Boolean).join(" · ")} />
       </div>
@@ -150,7 +150,7 @@ function Request() {
                     </span>
                     <span className="text-right">
                       {a.trees ? `${a.trees} trees · ` : ""}{fmtT(a.tonnes)}
-                      <span className="block text-xs text-muted">{fmtUsd(a.amount_usd)}</span>
+                      <span className="block text-xs text-muted">{fmtSol(a.amount_sol)}</span>
                     </span>
                   </li>
                 ))}

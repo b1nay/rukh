@@ -129,7 +129,7 @@ export type Allocation = {
   year: number;
   tonnes: number;
   trees: number;
-  amount_usd: number;
+  amount_sol: number;
   field_id: number;
   field_name: string;
   district: string;
@@ -148,7 +148,7 @@ export type TripDetail = TripSummary & {
   traveler_list: Traveler[];
   allocations: Allocation[];
   requests: AllocationRequest[];
-  spend_usd: number;
+  spend_sol: number;
 };
 
 export type ClimateSummary = {
@@ -158,7 +158,7 @@ export type ClimateSummary = {
   covered_t: number;
   new_trees: number;
   tree_years: number;
-  spend_usd: number;
+  spend_sol: number;
   monthly: { month: string; co2_t: number; covered_t: number }[];
   recent_trips: TripSummary[];
   top_itineraries: Itinerary[];
@@ -182,7 +182,7 @@ export type Field = {
   capacity_total: number;
   capacity_allocated: number;
   capacity_available: number;
-  earned_usd: number;
+  earned_sol: number;
 };
 
 export type Earning = {
@@ -193,7 +193,7 @@ export type Earning = {
   impact_type: "protect" | "plant";
   tonnes: number;
   trees: number;
-  landowner_usd: number;
+  landowner_sol: number;
   payout_status: PayoutStatus | null;
   created_at: string;
 };
@@ -204,8 +204,7 @@ export type LandSummary = {
   planting_slots: number;
   annual_capacity_t: number;
   allocated_t: number;
-  earned_usd: number;
-  earned_npr: number;
+  earned_sol: number;
   recent_earnings: Earning[];
 };
 
@@ -224,10 +223,10 @@ export type AllocationRequest = {
   year: number;
   tonnes: number;
   price_per_tonne: number;
-  subtotal_usd: number;
+  subtotal_sol: number;
   fee_rate: number;
-  fee_usd: number;
-  total_usd: number;
+  fee_sol: number;
+  total_sol: number;
   status: RequestStatus;
   note: string | null;
   admin_note: string | null;
@@ -261,19 +260,20 @@ export type Invoice = {
   request_id: number | null;
   description: string;
   lines: { description: string; quantity: number; unit: string; unit_price: number; amount: number }[];
-  subtotal_usd: number;
-  fee_usd: number;
-  total_usd: number;
+  subtotal_sol: number;
+  fee_sol: number;
+  total_sol: number;
   status: InvoiceStatus;
   issued_at: string;
   due_at: string;
   paid_at: string | null;
   payment_method: string | null;
-  payment_reference: string | null;
+  payment_reference: string | null; // Solana transaction signature
+  payer_wallet: string | null;
 };
 
 export type InvoiceList = {
-  totals: { count: number; billed_usd: number; paid_usd: number; outstanding_usd: number; overdue_usd: number };
+  totals: { count: number; billed_sol: number; paid_sol: number; outstanding_sol: number; overdue_sol: number };
   items: Invoice[];
 };
 
@@ -340,34 +340,34 @@ export type Payout = {
   invoice_status: InvoiceStatus | null;
   lines: { field_id: number; field_name: string; trees: number; tonnes: number; amount: number }[];
   trees: number;
-  amount_usd: number;
-  amount_npr: number;
+  amount_sol: number;
   status: PayoutStatus;
   method: string | null;
-  reference: string | null;
+  reference: string | null; // Solana transaction signature
+  wallet: string | null; // landowner's Solana address
   created_at: string;
   paid_at: string | null;
 };
 
 export type PayoutList = {
-  totals: { pending_count: number; pending_usd: number; paid_usd: number; landowners: number };
+  totals: { pending_count: number; pending_sol: number; paid_sol: number; landowners: number };
   items: Payout[];
 };
 
-export type AllocateResult = { status: string; invoice_number: string; invoice_total_usd: number; payout_ids: number[] };
+export type AllocateResult = { status: string; invoice_number: string; invoice_total_sol: number; payout_ids: number[] };
 
 export type AdminSummary = {
   pending_requests: number;
-  pending_usd: number;
+  pending_sol: number;
   climate_partners: number;
   land_partners: number;
   fields: number;
   protect_available_t: number;
   plant_available_trees: number;
   allocated_t: number;
-  billed_usd: number;
-  outstanding_usd: number;
-  fees_usd: number;
+  billed_sol: number;
+  outstanding_sol: number;
+  fees_sol: number;
   recent_requests: AllocationRequest[];
 };
 
@@ -405,7 +405,7 @@ export type FieldAllocation = {
   year: number;
   tonnes: number;
   trees: number;
-  landowner_usd: number;
+  landowner_sol: number;
   payout_number: string | null;
   payout_status: PayoutStatus | null;
   created_at: string;
@@ -420,12 +420,12 @@ export type FieldDetail = Field & {
     years: number;
     total_t: number;
     sellable_t: number;
-    earnings_usd: number;
+    earnings_sol: number;
     unplanted_trees: number;
     rows: { year: number; gross_t: number; sellable_t: number; cumulative_t: number }[];
   };
   allocations: FieldAllocation[];
-  sold_by_year: { year: number; tonnes: number; trees: number; landowner_usd: number }[];
+  sold_by_year: { year: number; tonnes: number; trees: number; landowner_sol: number }[];
 };
 
 export type ReceivedPayout = Omit<Payout, "landowner" | "landowner_phone" | "request_id" | "invoice_number" | "invoice_status"> & {
@@ -434,12 +434,21 @@ export type ReceivedPayout = Omit<Payout, "landowner" | "landowner_phone" | "req
 
 export type LandPayments = {
   totals: {
-    received_usd: number;
+    received_sol: number;
     received_count: number;
-    pending_usd: number;
+    pending_sol: number;
     pending_count: number;
     last_paid_at: string | null;
-    method: string;
+    wallet: string | null;
   };
   items: ReceivedPayout[];
+};
+
+export type SolanaConfig = { cluster: string; rpc_url: string; treasury: string | null };
+
+/** A payment for the browser wallet to sign, built by the API. Amounts are lamports. */
+export type SolanaIntent = {
+  cluster: string;
+  memo: string;
+  transfers: { to: string; lamports: number; amount_sol: number; label: string }[];
 };

@@ -9,7 +9,7 @@ import { useApi } from "@/components/dashboard/session";
 import { Badge, Card, ErrorNote, Loading, PageHeader } from "@/components/dashboard/ui";
 import { api } from "@/lib/api";
 import { FARMER_SHARE, IMPACT_TYPES } from "@/lib/content";
-import { fmtNpr, fmtT, fmtUsd } from "@/lib/format";
+import { fmtSol, fmtT } from "@/lib/format";
 import type { AllocateResult, FieldMapData, FieldOption, RequestDetail } from "@/lib/types";
 
 export function View() {
@@ -104,7 +104,7 @@ function Allocate() {
         picks: lines.map((l) => ({ field_id: l.field.id, amount: l.amount })),
         admin_note: note.trim() || null,
       });
-      router.push(`/dashboard/payouts?request=${id}&invoice=${encodeURIComponent(res.invoice_number)}&total=${res.invoice_total_usd}`);
+      router.push(`/dashboard/payouts?request=${id}&invoice=${encodeURIComponent(res.invoice_number)}&total=${res.invoice_total_sol}`);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Allocation failed");
       setBusy(false);
@@ -123,7 +123,7 @@ function Allocate() {
         <Need label="CO₂ to cover" value={fmtT(need)} />
         <Need label={plant ? "New trees needed" : "Trees needed"} value={req.data.trees_needed.toLocaleString()} />
         <Need label="Land needed" value={`${req.data.area_needed_ha.toLocaleString()} ha`} />
-        <Need label="Client bill" value={fmtUsd(r.total_usd)} sub={`${fmtUsd(r.price_per_tonne)}/t + ${Math.round(r.fee_rate * 100)}% fee`} />
+        <Need label="Client bill" value={fmtSol(r.total_sol)} sub={`${fmtSol(r.price_per_tonne)}/t + ${Math.round(r.fee_rate * 100)}% fee`} />
       </Card>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
@@ -199,7 +199,7 @@ function Allocate() {
               <div className="h-full rounded-full bg-blue-600" style={{ width: `${pct}%` }} />
             </div>
             <p className="mt-2 text-xs text-muted">
-              Landowners receive {fmtNpr(subtotal * FARMER_SHARE)} across {new Set(lines.map((l) => l.field.landowner)).size} payment(s).
+              Landowners receive {fmtSol(subtotal * FARMER_SHARE)} across {new Set(lines.map((l) => l.field.landowner)).size} payment(s).
             </p>
           </div>
           {req.data.shortfall > 0 && (

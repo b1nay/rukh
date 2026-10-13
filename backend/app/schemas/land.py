@@ -36,7 +36,7 @@ class FieldOut(BaseModel):
     capacity_total: float
     capacity_allocated: float
     capacity_available: float
-    earned_usd: float
+    earned_sol: float
 
 
 class EarningOut(BaseModel):
@@ -47,7 +47,7 @@ class EarningOut(BaseModel):
     impact_type: str
     tonnes: float
     trees: int
-    landowner_usd: float
+    landowner_sol: float
     payout_status: Literal["pending", "paid"] | None  # None: allocated before payouts existed
     created_at: datetime
 
@@ -58,6 +58,13 @@ class LandSummary(BaseModel):
     planting_slots: int
     annual_capacity_t: float
     allocated_t: float
-    earned_usd: float
-    earned_npr: float
+    earned_sol: float
     recent_earnings: list[EarningOut]
+
+
+class WalletIn(BaseModel):
+    address: str
+
+
+class WalletOut(BaseModel):
+    wallet: str
