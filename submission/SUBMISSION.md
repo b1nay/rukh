@@ -11,7 +11,9 @@ Rukh turns travel emissions into specific, mapped trees in Nepal. Tour operators
 
 **Link to your submission:** TODO (deployed app URL, if any)
 
-**GitHub link:** https://github.com/kachhuwagroup/climate. TODO: the repo is currently private (it returns 404 to visitors). Make it public or give the judges access.
+**GitHub link:** https://github.com/b1nay/rukh. TODO: confirm the repo is public, or give the judges access.
+
+**Team:** Binayak Karki, Aalok Sapkota, Abinash Oli
 
 **Pitch deck or Loom/video:** pitch deck https://claude.ai/artifact/KVNa2zhPVjxZJBf86HNFNp (TODO: share it publicly from its Share menu, or export it to PDF/PPTX). Demo video: `brag-output/brag.mp4` (TODO: upload it to YouTube or Loom and paste the link).
 
