@@ -7,5 +7,7 @@ __pycache__/
 .env.local
 .DS_Store
 rukh.db
-brag-output/composition/snapshots/
+# database backups (demo reset, USD→SOL migration) hold real accounts
+*.db
+*.bak
 brag-output/composition/snapshots/
